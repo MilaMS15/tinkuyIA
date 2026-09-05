@@ -65,7 +65,7 @@ export class StorageService {
   }
 
   static getGeminiModel() {
-    return localStorage.getItem('tinkuy_gemini_model') || 'gemini-2.0-flash';
+    return localStorage.getItem('tinkuy_gemini_model') || 'gemini-3.8-flash';
   }
 
   static saveGeminiModel(model) {

@@ -673,8 +673,14 @@ export class OcrEngine {
         if (geminiResult && geminiResult.items && geminiResult.items.length > 0) {
           return geminiResult;
         }
+        throw new Error('Gemini no devolvió productos');
       } catch (err) {
         console.warn('Error llamando a Gemini API, activando motor OCR local:', err);
+        // Se propaga el motivo para que la UI avise que el resultado que sigue
+        // es una aproximación local, no una lectura real de ESTA imagen.
+        const localResult = await this.processImageLocally(optimizedImg, presetType);
+        localResult.fallbackReason = err.message || 'Error desconocido con Gemini';
+        return localResult;
       }
     }
 
@@ -737,13 +743,13 @@ Responde EXCLUSIVAMENTE con un objeto JSON válido (sin markdown ni comillas tri
   "doubtItem": null
 }`;
 
-    const preferredModel = StorageService.getGeminiModel() || 'gemini-2.0-flash';
+    const preferredModel = StorageService.getGeminiModel() || 'gemini-3.8-flash';
     const modelsToTry = [
       preferredModel,
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-lite',
+      'gemini-3.8-flash',
+      'gemini-3.7-flash',
       'gemini-2.5-flash',
-      'gemini-2.5-pro'
+      'gemini-2.0-flash'
     ];
     const uniqueModels = [...new Set(modelsToTry)];
     let lastError = null;

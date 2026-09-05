@@ -321,7 +321,17 @@ class TinkuyAppController {
   // --- SUBIDA DE ARCHIVO / FOTO ---
   handleFileUpload(event) {
     const file = event.target.files[0];
+    // Limpiar el input siempre: si no se hace, seleccionar la MISMA imagen
+    // de nuevo no dispara 'change' y la vista se queda con los datos de la
+    // foto anterior (parece que se "combinan" cuando en realidad no se
+    // volvió a escanear nada).
+    event.target.value = '';
     if (!file) return;
+
+    // Resetear cualquier resultado pendiente antes de leer la nueva foto
+    // para que cada imagen se procese de forma aislada.
+    this.pendingScanData = null;
+    this.currentDoubt = null;
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -362,7 +372,7 @@ class TinkuyAppController {
     if (loadSubtitle) loadSubtitle.textContent = 'Subiendo imagen y normalizando resolución para lectura...';
     
     const hasKey = StorageService.getGeminiApiKey().length > 10;
-    const selectedModel = StorageService.getGeminiModel() || 'gemini-2.0-flash';
+    const selectedModel = StorageService.getGeminiModel() || 'gemini-3.8-flash';
     if (badge) {
       badge.textContent = hasKey
         ? `Analizando con ${selectedModel}...`
@@ -380,6 +390,10 @@ class TinkuyAppController {
 
     try {
       const result = await OcrEngine.processImage(imageDataUrl, label);
+
+      if (result.fallbackReason) {
+        this.showToast(`⚠️ Gemini falló (${result.fallbackReason}). Mostrando aproximación del Motor Local, revisa los datos.`);
+      }
 
       if (badge) {
         badge.textContent = result.source && result.source.startsWith('gemini')
@@ -811,7 +825,7 @@ class TinkuyAppController {
 
     // 2. Intentar llamar a Gemini si hay API Key disponible
     const apiKey = StorageService.getGeminiApiKey();
-    const model = StorageService.getGeminiModel() || 'gemini-2.0-flash';
+    const model = StorageService.getGeminiModel() || 'gemini-3.8-flash';
     let geminiSuccess = false;
 
     const currentTotal = this.pendingScanData.items.reduce((acc, it) => acc + ((Number(it.stock) || 1) * (Number(it.costUnit) || 0)), 0);
@@ -2064,7 +2078,7 @@ Responde EXCLUSIVAMENTE con un JSON válido (sin backticks ni markdown):
     const apiKey = StorageService.getGeminiApiKey();
     if (!apiKey || apiKey.length < 10) return null;
 
-    const models = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+    const models = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-2.5-flash'];
     for (const model of models) {
       try {
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -2204,6 +2218,9 @@ Mantén la respuesta concisa (máximo 120 palabras), clara y estructurada en HTM
 
   handleTinkyFileSelect(event) {
     const file = event.target.files?.[0];
+    // Igual que en handleFileUpload: sin esto, re-seleccionar la misma foto
+    // no dispara 'change' y se queda el adjunto anterior.
+    event.target.value = '';
     if (!file) return;
 
     this.tinkyAttachedFile = file;
@@ -2283,6 +2300,9 @@ Mantén la respuesta concisa (máximo 120 palabras), clara y estructurada en HTM
       if (statusText) statusText.textContent = 'Analizando comprobante con Visión IA...';
       try {
         const scanResult = await OcrEngine.processImage(imageToProcess);
+        if (scanResult.fallbackReason) {
+          this.showToast(`⚠️ Gemini falló (${scanResult.fallbackReason}). Mostrando aproximación del Motor Local, revisa los datos.`);
+        }
         if (scanResult && scanResult.items && scanResult.items.length > 0) {
           const isSale = scanResult.documentType === 'venta_tienda' || !!scanResult.isSale;
           const isTransfer = scanResult.documentType === 'traslado' || !!scanResult.isTransfer;
