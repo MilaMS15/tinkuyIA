@@ -318,12 +318,14 @@ class TinkuyAppController {
     const card = document.getElementById('ocrScanningCard');
     const previewImg = document.getElementById('ocrPreviewImg');
     const badge = document.getElementById('scanProgressBadge');
+    const doubtContainer = document.getElementById('humanInTheLoopAlert');
 
     if (card) card.classList.remove('hidden');
     if (previewImg) previewImg.src = imageDataUrl;
+    if (doubtContainer) doubtContainer.classList.add('hidden'); // Ocultar duda anterior al iniciar
     
     const hasKey = StorageService.getGeminiApiKey().length > 10;
-    const selectedModel = StorageService.getGeminiModel() || 'gemini-2.5-flash';
+    const selectedModel = StorageService.getGeminiModel() || 'gemini-2.0-flash';
     if (badge) {
       badge.textContent = hasKey
         ? `Analizando con ${selectedModel}...`
@@ -339,9 +341,46 @@ class TinkuyAppController {
           : 'Extracción completada con Motor Local ✓';
       }
 
-      const doubtContainer = document.getElementById('humanInTheLoopAlert');
+      // Renderizado dinámico de la Duda de la IA adaptada a la boleta o cuaderno
       if (result.doubtItem && doubtContainer) {
+        const d = result.doubtItem;
+        this.currentDoubt = d;
+        const msg = d.message || d.question || 'Duda detectada en el documento';
+        const optA = d.optionA || { label: `Confirmar ${d.options ? d.options[0] : 'Opción 1'}`, value: (d.options ? d.options[0] : 25) };
+        const optB = d.optionB || { label: `${d.options ? d.options[1] : 'Opción 2'}`, value: (d.options ? d.options[1] : 35) };
+
+        doubtContainer.innerHTML = `
+          <div class="flex items-start gap-2.5">
+            <div class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+              <i data-lucide="help-circle" class="w-4 h-4 text-amber-700"></i>
+            </div>
+            <div class="w-full space-y-1.5">
+              <div class="flex items-center justify-between">
+                <p class="font-bold text-[11px] text-amber-900">Duda de la IA (Human-in-the-Loop):</p>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-bold uppercase">Validar</span>
+              </div>
+              <p class="text-[11px] text-amber-900 leading-snug">
+                ${msg}
+              </p>
+              <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                <button onclick="window.tinkuyApp.resolveDoubt('${optA.value}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-[11px] shadow-2xs transition active:scale-95">
+                  ${optA.label}
+                </button>
+                <button onclick="window.tinkuyApp.resolveDoubt('${optB.value}')" class="px-3 py-1.5 bg-white border border-amber-300 hover:bg-amber-100/60 text-amber-900 rounded-xl font-bold text-[11px] shadow-2xs transition active:scale-95">
+                  ${optB.label}
+                </button>
+                <button onclick="window.tinkuyApp.triggerAudioRescue()" class="px-2.5 py-1.5 bg-tinkuy-blush hover:bg-tinkuy-coral hover:text-white text-tinkuy-coral rounded-xl font-bold text-[11px] flex items-center gap-1 transition active:scale-95">
+                  <i data-lucide="mic" class="w-3.5 h-3.5"></i> Audio voz
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
         doubtContainer.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+      } else if (doubtContainer) {
+        doubtContainer.classList.add('hidden');
+        this.currentDoubt = null;
       }
 
       // Metadata del comprobante escaneado
@@ -426,18 +465,45 @@ class TinkuyAppController {
   }
 
   // --- HUMAN IN THE LOOP ---
-  resolveDoubt(confirmedPrice) {
+  resolveDoubt(confirmedVal) {
     const doubtAlert = document.getElementById('humanInTheLoopAlert');
+    const valNum = parseFloat(confirmedVal) || confirmedVal;
+
+    // 1. Si había un producto asociado a la duda, actualizarlo en el inventario local
+    if (this.currentDoubt && this.currentDoubt.targetItemName) {
+      const prod = this.state.products.find(p => p.name.toLowerCase().includes(this.currentDoubt.targetItemName.toLowerCase()));
+      if (prod) {
+        const field = this.currentDoubt.field || 'priceSale';
+        prod[field] = valNum;
+        this.save();
+      }
+    }
+
+    // 2. Feedback visual de éxito inmediato
     if (doubtAlert) {
       doubtAlert.innerHTML = `
-        <div class="flex items-center gap-2 text-emerald-800 font-semibold text-xs">
-          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
-          <span>Precio validado a <strong>S/ ${confirmedPrice.toFixed(2)}</strong>. Guardado en memoria.</span>
+        <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs p-1">
+          <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px]">✓</div>
+          <span>Dato validado a: <strong>${valNum}</strong>. Guardado en LocalStorage.</span>
         </div>
       `;
       if (window.lucide) window.lucide.createIcons();
+
+      // 3. Desaparecer completamente con animación suave
+      setTimeout(() => {
+        doubtAlert.style.transition = 'all 0.35s ease-out';
+        doubtAlert.style.opacity = '0';
+        doubtAlert.style.transform = 'translateY(-6px)';
+        setTimeout(() => {
+          doubtAlert.classList.add('hidden');
+          doubtAlert.style.opacity = '1';
+          doubtAlert.style.transform = 'none';
+          this.currentDoubt = null;
+        }, 350);
+      }, 700);
     }
-    this.showToast(`Precio validado: S/ ${confirmedPrice.toFixed(2)}`);
+
+    this.showToast(`Dato validado a: ${valNum}`);
   }
 
   // =========================================================================

@@ -149,6 +149,10 @@ Extrae los productos y normalízalos según nuestra taxonomía obligatoria:
 Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backticks ni markdown):
 {
   "success": true,
+  "documentType": "boleta",
+  "documentNumber": "B001-0004928",
+  "providerOrIssuer": "Proveedor / Comercio",
+  "totalAmount": 936.0,
   "dataQualityScore": 95,
   "items": [
     {
@@ -163,14 +167,16 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
     }
   ],
   "doubtItem": null
-}`;
+}
+(Si hay alguna cifra tachada o ambigua en la foto real, devuelve en doubtItem: {"targetItemName": "nombre", "field": "priceSale", "message": "pregunta para la dueña", "optionA": {"label": "Confirmar X", "value": 25}, "optionB": {"label": "Es Y", "value": 35}}).`;
 
-    const preferredModel = StorageService.getGeminiModel() || 'gemini-2.5-flash';
-    // Últimas versiones de Gemini (2.5 Flash, 2.0 Flash, 2.5 Pro)
+    const preferredModel = StorageService.getGeminiModel() || 'gemini-2.0-flash';
+    // Últimas versiones activas de Gemini en Google AI Studio
     const modelsToTry = [
       preferredModel,
-      'gemini-2.5-flash',
       'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+      'gemini-2.5-flash',
       'gemini-2.5-pro'
     ];
     const uniqueModels = [...new Set(modelsToTry)];
@@ -288,6 +294,14 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
               dataQualityScore: 98
             })
           ];
+
+          doubtItem = {
+            targetItemName: 'Top Rib Básico Spun Colores',
+            field: 'stock',
+            message: 'En la Boleta Electrónica B001-0004928, el renglón de "Top Rib" tiene borrón de tinta: ¿El lote ingresado es de 24 un. o 20 un.?',
+            optionA: { label: 'Confirmar 24 un.', value: 24 },
+            optionB: { label: 'Son 20 un.', value: 20 }
+          };
         } else if (presetType === 'abarrotes_granel') {
           documentType = 'boleta';
           documentNumber = 'B002-001284';
@@ -307,6 +321,14 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
               dataQualityScore: 94
             })
           ];
+
+          doubtItem = {
+            targetItemName: 'Quinua Blanca Lavada x Kilo',
+            field: 'stock',
+            message: 'En la nota de pesaje de Quinua del saco granel: ¿El stock neto recibido es 35 kg o 40 kg?',
+            optionA: { label: 'Confirmar 35 kg', value: 35 },
+            optionB: { label: 'Son 40 kg', value: 40 }
+          };
         } else {
           documentType = 'cuaderno';
           documentNumber = 'Cierre Diario #' + Math.floor(100 + Math.random() * 900);
@@ -340,8 +362,11 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
           ];
 
           doubtItem = {
-            message: 'En la fila 2 el número de precio está tachado: ¿El precio confirmado es S/ 25.00 o S/ 35.00?',
-            options: [25, 35]
+            targetItemName: 'Blusa Seda Satín Manga Larga',
+            field: 'priceSale',
+            message: 'En la fila manuscrita 2 (Blusa Satín Palo Rosa), el trazo del precio está dudoso: ¿Es S/ 35.00 o S/ 45.00?',
+            optionA: { label: 'Confirmar S/ 35', value: 35 },
+            optionB: { label: 'Es S/ 45', value: 45 }
           };
         }
 

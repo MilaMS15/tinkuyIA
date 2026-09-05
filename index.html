@@ -432,27 +432,8 @@
                     <p class="text-emerald-600 text-[10px]">Auditado para cálculo de rotación real en LocalStorage.</p>
                   </div>
 
-                  <div id="humanInTheLoopAlert" class="hidden p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                    <div class="flex items-start gap-2">
-                      <i data-lucide="help-circle" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
-                      <div class="w-full">
-                        <p class="font-bold text-[11px] text-amber-800">Duda de la IA (Human-in-the-Loop):</p>
-                        <p class="text-[10px] text-amber-700 mt-0.5">
-                          En la fila 2 el número está dudoso: ¿Es <strong>S/ 25.00</strong> o <strong>S/ 35.00</strong>?
-                        </p>
-                        <div class="flex flex-wrap items-center gap-1.5 mt-2">
-                          <button onclick="window.tinkuyApp.resolveDoubt(25)" class="px-2.5 py-1 bg-amber-600 text-white rounded-lg font-bold text-[10px]">
-                            Confirmar S/ 25
-                          </button>
-                          <button onclick="window.tinkuyApp.resolveDoubt(35)" class="px-2.5 py-1 bg-white border border-amber-400 text-amber-800 rounded-lg font-bold text-[10px]">
-                            Es S/ 35
-                          </button>
-                          <button onclick="window.tinkuyApp.triggerAudioRescue()" class="px-2 py-1 bg-tinkuy-blush text-tinkuy-coral rounded-lg font-bold text-[10px] flex items-center gap-1">
-                            <i data-lucide="mic" class="w-3 h-3"></i> Audio voz
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                  <div id="humanInTheLoopAlert" class="hidden p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 transition-all duration-300">
+                    <!-- Se inyecta dinámicamente adaptado a la boleta o cuaderno escaneado -->
                   </div>
                 </div>
               </div>
@@ -1267,8 +1248,9 @@
         <div>
           <label class="block font-semibold text-slate-700 mb-1 text-[11px]">Modelo de Gemini:</label>
           <select id="geminiModelSelect" class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-tinkuy-coral/20">
-            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Última versión - Recomendado)</option>
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash (Alta velocidad)</option>
+            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Última versión oficial - Recomendado)</option>
+            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (Ultra rápido)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Preview)</option>
             <option value="gemini-2.5-pro">Gemini 2.5 Pro (Máximo razonamiento)</option>
           </select>
         </div>
