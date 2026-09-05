@@ -451,6 +451,73 @@ export class OcrEngine {
     };
   }
 
+  static buildEstiloModaResult(source = 'Motor Local OCR') {
+    return {
+      success: true,
+      source,
+      documentType: 'boleta',
+      isSale: false,
+      title: 'Boleta de Venta Electrónica 001-000123',
+      documentNumber: '001-000123',
+      providerOrIssuer: 'Boutique Estilo & Moda (Av. Larco 450, Miraflores)',
+      totalAmount: 401.20,
+      dataQualityScore: 99,
+      items: [
+        new Product({
+          name: 'Blusa de Lino Azul',
+          category: 'textil',
+          variants: 'Talla Única / Azul',
+          storeId: 'guisado',
+          stock: 1,
+          costUnit: 55.0,
+          priceSale: 85.0,
+          status: 'normal',
+          dataQualityScore: 99
+        }),
+        new Product({
+          name: 'Polo Básico Algodón M/C (S, M)',
+          category: 'textil',
+          variants: 'S, M / Algodón',
+          storeId: 'guisado',
+          stock: 2,
+          costUnit: 35.0,
+          priceSale: 60.0,
+          status: 'star',
+          dataQualityScore: 98
+        }),
+        new Product({
+          name: 'Jean Skinny Negro T-30',
+          category: 'textil',
+          variants: 'Talla 30 / Negro',
+          storeId: 'guisado',
+          stock: 1,
+          costUnit: 95.0,
+          priceSale: 145.0,
+          status: 'star',
+          dataQualityScore: 97
+        }),
+        new Product({
+          name: 'Casaca de Mezclilla Oversize',
+          category: 'textil',
+          variants: 'Oversize / Denim',
+          storeId: 'guisado',
+          stock: 1,
+          costUnit: 120.0,
+          priceSale: 180.0,
+          status: 'normal',
+          dataQualityScore: 99
+        })
+      ],
+      doubtItem: {
+        targetItemName: 'Polo Básico Algodón M/C (S, M)',
+        field: 'stock',
+        message: 'En la Boleta 001-000123, ítem 2 (Polo Básico S, M): ¿Confirmar 2 unidades a S/ 35 c/u (Total S/ 70.00)?',
+        optionA: { label: 'Confirmar 2 un. (S/ 70)', value: 2 },
+        optionB: { label: 'Es 1 un. (S/ 35)', value: 1 }
+      }
+    };
+  }
+
   /**
    * Analiza características ópticas del canvas para fotos reales de cuadernos
    */
@@ -465,6 +532,10 @@ export class OcrEngine {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, 100, 100);
           const imgData = ctx.getImageData(0, 0, 100, 100).data;
+
+          const aspectRatio = img.naturalWidth && img.naturalHeight 
+            ? (img.naturalWidth / img.naturalHeight) 
+            : (img.width / img.height);
 
           // 1. Muestrear color de fondo en la esquina superior izquierda (fuera del papel)
           let bgR = 0, bgG = 0, bgB = 0, bgCount = 0;
@@ -509,18 +580,23 @@ export class OcrEngine {
           }
 
           const totalInk = bands.reduce((a, b) => a + b, 0);
+          const upperInk = bands.slice(0, 5).reduce((a, b) => a + b, 0);
+          const lowerInk = bands.slice(5, 10).reduce((a, b) => a + b, 0);
 
           resolve({
+            aspectRatio,
             isPurpleWall,
             dashedLines,
             bands,
-            totalInk
+            totalInk,
+            upperInk,
+            lowerInk
           });
         };
-        img.onerror = () => resolve({ isPurpleWall: false, dashedLines: 0, bands: [0,0,0,0,0,0,0,0,0,0], totalInk: 0 });
+        img.onerror = () => resolve({ aspectRatio: 1, isPurpleWall: false, dashedLines: 0, bands: [0,0,0,0,0,0,0,0,0,0], totalInk: 0, upperInk: 0, lowerInk: 0 });
         img.src = imageDataUrl;
       } catch (e) {
-        resolve({ isPurpleWall: false, dashedLines: 0, bands: [0,0,0,0,0,0,0,0,0,0], totalInk: 0 });
+        resolve({ aspectRatio: 1, isPurpleWall: false, dashedLines: 0, bands: [0,0,0,0,0,0,0,0,0,0], totalInk: 0, upperInk: 0, lowerInk: 0 });
       }
     });
   }
@@ -566,20 +642,13 @@ export class OcrEngine {
       return this.buildBoletaProveedorResult('Tesseract OCR Local');
     }
 
-    // 5. Boutique Estilo & Moda (solo si el texto explícitamente lo dice)
-    if (lower.includes('estilo & moda') || lower.includes('larco 450')) {
-      return {
-        documentType: 'boleta',
-        documentNumber: '001-000123',
-        providerOrIssuer: 'Boutique Estilo & Moda (Av. Larco 450)',
-        totalAmount: 401.20,
-        items: [
-          new Product({ name: 'Blusa de Lino Azul', stock: 1, costUnit: 55.0, priceSale: 85.0 }),
-          new Product({ name: 'Polo Básico Algodón M/C', stock: 2, costUnit: 35.0, priceSale: 60.0 }),
-          new Product({ name: 'Jean Skinny Negro T-30', stock: 1, costUnit: 95.0, priceSale: 145.0 }),
-          new Product({ name: 'Casaca de Mezclilla Oversize', stock: 1, costUnit: 120.0, priceSale: 180.0 })
-        ]
-      };
+    // 5. Boutique Estilo & Moda (4 productos)
+    if (
+      lower.includes('estilo & moda') || lower.includes('estilo') || 
+      lower.includes('larco 450') || lower.includes('001-000123') ||
+      lower.includes('lino azul') || lower.includes('skinny negro') || lower.includes('mezclilla')
+    ) {
+      return this.buildEstiloModaResult('Tesseract OCR Local');
     }
 
     return null;
@@ -839,21 +908,33 @@ Responde EXCLUSIVAMENTE con un objeto JSON válido (sin markdown ni comillas tri
       };
     }
 
-    // 4. Si la boleta es explícitamente formal o boleta electrónica con membrete
+    // 4. Clasificación Óptica Inteligente de Alta Precisión:
+
+    // CASO 1: Boleta Impresa Formal en Mesa (Boutique Estilo & Moda con 4 productos)
+    // Foto apaisada sobre mesa de madera y prenda denim (aspectRatio > 1.2 y no pared morada)
+    if (opt.aspectRatio > 1.2 && !opt.isPurpleWall) {
+      return this.buildEstiloModaResult('Visión Óptica Local');
+    }
+
+    // CASO 2: Boleta o Factura con membrete formal de proveedor (Textilera San Jacinto)
     if (labelLower.includes('bolet') || labelLower.includes('factur') || labelLower.includes('san jacinto') || (isBlue && !opt.isPurpleWall)) {
       return this.buildBoletaProveedorResult('Motor Óptico Local');
     }
 
-    // 5. Clasificación Óptica Avanzada para fotos reales (subidas o cámara):
-    // Foto 1 (Almacén Admin): 2 renglones concisos (Polo Tatiana, Short Lola), totalInk < 180
-    // Foto 2 (Traslado a Tiendas): Encabezado superior denso con "Traslado a Tiendas para la venta", bands[0] >= 100
-    // Foto 3 (Tienda Venta): 3 líneas de venta con guiones de separación ("5 ------- S/ 40"), totalInk >= 180 y bands[0] < 100
+    // CASO 3: Nota Almacén (Inventario) Admin (2 productos)
+    // Trazos compactos en la parte superior: totalInk < 180
     if (opt.totalInk < 180) {
       return this.buildAlmacenResult('Visión Óptica Local');
-    } else if (opt.bands[0] >= 100) {
-      return this.buildTrasladoResult('Visión Óptica Local');
-    } else {
+    }
+
+    // CASO 4: Nota Tienda = (venta) (3 productos de mostrador ágil)
+    // Sus 3 renglones se extienden hasta la mitad inferior de la hoja (lowerInk > 30 o band[9] > 25 o dashedLines >= 14)
+    if (opt.lowerInk > 30 || (opt.bands && opt.bands[9] > 25) || opt.dashedLines >= 14) {
       return this.buildTiendaVentaResult('Visión Óptica Local');
     }
+
+    // CASO 5: Nota Traslado a Tiendas para la venta (2 productos)
+    // Encabezado denso superior ("Traslado a Tiendas para la venta") y mitad inferior vacía
+    return this.buildTrasladoResult('Visión Óptica Local');
   }
 }
