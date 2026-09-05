@@ -39,7 +39,16 @@ export class StorageService {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.error('Error guardando en localStorage:', e);
+      console.warn('LocalStorage lleno o error, reintentando sin imágenes pesadas:', e);
+      try {
+        const cleanedData = {
+          ...data,
+          scannedReceipts: (data.scannedReceipts || []).map(r => ({ ...r, imageDataUrl: null }))
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedData));
+      } catch (inner) {
+        console.error('Error crítico guardando en localStorage:', inner);
+      }
     }
   }
 
