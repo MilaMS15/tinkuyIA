@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Tinkuy IA — De cuaderno a decisión, en 3 pasos</title>
+  <meta name="description" content="Plataforma de gestión visual de inventario e inclusión financiera para microemprendedoras. Transforma registros en libretas a decisiones de negocio inmediatas." />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+  <!-- Tailwind Theme Configuration -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            tinkuy: {
+              forest: '#144e45',
+              forestDark: '#0b322c',
+              forestLight: '#1d6e62',
+              coral: '#e76f51',
+              coralHover: '#d45a3c',
+              blush: '#fbe9e7',
+              roseSoft: '#ffebee',
+              sand: '#fcfaf7',
+              sandDark: '#f4ede4',
+              gold: '#e9c46a',
+              emerald: '#2a9d8f',
+              emeraldDark: '#1d7469',
+              slate: '#2b2d42',
+              muted: '#6c757d',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(20, 78, 69, 0.07)',
+            'card': '0 10px 30px -5px rgba(20, 78, 69, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+            'float': '0 20px 40px -10px rgba(231, 111, 81, 0.25)',
+            'mobile': '0 25px 60px -15px rgba(20, 78, 69, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Mobile-First Stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+
+<body class="bg-tinkuy-sand text-tinkuy-slate font-sans min-h-screen antialiased selection:bg-tinkuy-coral selection:text-white flex flex-col">
+
+  <!-- ========================================================================= -->
+  <!-- TOP BAR: Adaptada para Computadora y Celular -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 border-b border-tinkuy-sandDark backdrop-blur-md transition-all shadow-sm">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-tinkuy-forest to-tinkuy-emerald flex items-center justify-center text-white shadow-md shadow-tinkuy-forest/20 shrink-0">
+          <i data-lucide="sparkles" class="w-4 h-4 sm:w-5 sm:h-5 text-tinkuy-gold"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <h1 class="font-serif font-bold text-lg sm:text-xl text-tinkuy-forest tracking-tight">Tinkuy IA</h1>
+            <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-tinkuy-blush text-tinkuy-coral border border-tinkuy-coral/20">
+              Mype PWA
+            </span>
+          </div>
+          <p class="text-[10px] text-slate-500 font-medium hidden sm:block">De cuaderno a decisión, en 3 pasos</p>
+        </div>
+      </div>
+
+      <!-- Selectores de Local y Rol -->
+      <div class="flex items-center gap-1 sm:gap-2 bg-tinkuy-sand rounded-xl p-1 border border-slate-200 text-xs">
+        
+        <!-- Store Selector -->
+        <div class="flex items-center gap-1 px-1.5 sm:px-2 py-1 text-slate-700">
+          <i data-lucide="store" class="w-3.5 h-3.5 text-tinkuy-coral shrink-0"></i>
+          <select id="storeSelector" class="bg-transparent font-semibold text-tinkuy-forest focus:outline-none cursor-pointer text-xs max-w-[105px] sm:max-w-none truncate">
+            <option value="consolidated">🌟 Consolidado General</option>
+            <option value="guisado">🏬 Galería Guisado (#104)</option>
+            <option value="el_rey">🏬 Galería El Rey (#215)</option>
+            <option value="almacen">📦 Almacén Central</option>
+          </select>
+        </div>
+
+        <div class="h-3.5 w-px bg-slate-300"></div>
+
+        <!-- Role Selector -->
+        <div class="flex items-center gap-1 px-1.5 sm:px-2 py-1">
+          <i data-lucide="user-check" class="w-3.5 h-3.5 text-tinkuy-emerald shrink-0"></i>
+          <select id="roleSelector" class="bg-transparent font-semibold text-tinkuy-forest focus:outline-none cursor-pointer text-xs max-w-[85px] sm:max-w-none truncate">
+            <option value="duena">👑 Dueña</option>
+            <option value="vendedora">🏷️ Vendedora</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Gemini API Badge & Device Switcher -->
+      <div class="flex items-center gap-1.5">
+        
+        <!-- Gemini Key Button -->
+        <button id="geminiStatusBadge" onclick="window.tinkuyApp.openGeminiKeyModal()" class="px-2 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 transition border border-slate-200" title="Configurar Gemini API Key">
+          <i data-lucide="key" class="w-3.5 h-3.5 text-tinkuy-coral"></i>
+          <span class="hidden sm:inline">Gemini API</span>
+        </button>
+
+        <!-- Desktop vs Mobile Switcher -->
+        <div class="hidden sm:flex bg-slate-100 p-1 rounded-xl items-center border border-slate-200">
+          <button id="btnViewDesktop" onclick="window.tinkuyApp.setDeviceMode('desktop')" title="Vista para Computadora" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all bg-white text-tinkuy-forest shadow-sm">
+            <i data-lucide="monitor" class="w-3.5 h-3.5"></i>
+            <span>PC</span>
+          </button>
+          <button id="btnViewMobile" onclick="window.tinkuyApp.setDeviceMode('mobile')" title="Simulador Celular PWA" class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-tinkuy-forest">
+            <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+            <span>Móvil</span>
+          </button>
+        </div>
+
+        <button onclick="window.tinkuyApp.openDeckModal()" class="w-8 h-8 rounded-xl bg-tinkuy-blush text-tinkuy-coral flex items-center justify-center hover:bg-tinkuy-coral hover:text-white transition shrink-0" title="Ver Pitch Deck">
+          <i data-lucide="info" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER -->
+  <!-- ========================================================================= -->
+  <div id="deviceContainer" class="flex-1 w-full transition-all duration-300 py-3 sm:py-6">
+    <div id="viewWrapper" class="max-w-7xl mx-auto px-3 sm:px-6">
+
+      <!-- SIMULATOR NOTCH (Visible sólo en simulación móvil) -->
+      <div class="simulator-notch">
+        <div class="simulator-notch-speaker"></div>
+      </div>
+
+      <!-- TOP BANNER: Emprendedora Welcome & Métricas Limpias -->
+      <div class="mb-4 sm:mb-6 bg-gradient-to-r from-tinkuy-forest to-tinkuy-emerald text-white rounded-3xl p-4 sm:p-7 relative overflow-hidden shadow-card">
+        <div class="absolute -right-8 -bottom-10 opacity-15 pointer-events-none hidden sm:block">
+          <i data-lucide="book-open" class="w-64 h-64 text-white"></i>
+        </div>
+        
+        <div class="banner-flex flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 relative z-10">
+          
+          <!-- Banner Greeting Text -->
+          <div class="banner-text">
+            <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-semibold mb-1.5">
+              <span class="w-2 h-2 rounded-full bg-tinkuy-gold animate-pulse"></span>
+              <span id="bannerStoreName">Consolidado General</span>
+            </div>
+            <h2 class="text-xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+              ¡Hola, <span id="userNameLabel">Sofía</span>! Tu negocio hoy
+            </h2>
+            <p class="text-white/85 text-xs sm:text-sm mt-1 max-w-xl">
+              Cero digitación: tómale foto al cuaderno. La IA calcula el capital congelado y te arma combos listos para WhatsApp.
+            </p>
+          </div>
+
+          <!-- Banner Metrics Bar: Estricto 3 columnas sin colapso -->
+          <div class="banner-metrics grid grid-cols-3 gap-2 bg-white/10 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-white/20 shrink-0">
+            
+            <div class="metric-item text-center px-1">
+              <p class="metric-title text-[9px] sm:text-[10px] text-white/75 uppercase font-semibold">Hábito Diario</p>
+              <p class="metric-value text-sm sm:text-lg font-bold text-tinkuy-gold flex items-center justify-center gap-0.5">
+                <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400"></i>
+                <span id="streakDays">28d</span>
+              </p>
+            </div>
+
+            <div class="metric-item text-center px-1 border-x border-white/20">
+              <p class="metric-title text-[9px] sm:text-[10px] text-white/75 uppercase font-semibold">Tinkuy Score</p>
+              <p class="metric-value text-sm sm:text-lg font-bold text-emerald-300">
+                <span id="headerScoreValue">785</span>
+              </p>
+            </div>
+
+            <div class="metric-item text-center px-1">
+              <p class="metric-title text-[9px] sm:text-[10px] text-white/75 uppercase font-semibold">Capital Parado</p>
+              <p class="metric-value text-xs sm:text-lg font-bold text-red-200 truncate" id="headerFrozenMoney">S/ 480.00</p>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DESKTOP NAVIGATION TABS -->
+      <div class="desktop-tabs-bar flex items-center justify-between overflow-x-auto pb-2 mb-6 border-b border-slate-200 gap-2 text-sm font-semibold">
+        <div class="flex items-center gap-2">
+          <button onclick="window.tinkuyApp.switchTab('step1')" id="tab-step1" class="tab-btn active flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all bg-tinkuy-coral text-white shadow-soft">
+            <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">1</span>
+            <span>Foto al Cuaderno</span>
+          </button>
+          
+          <button onclick="window.tinkuyApp.switchTab('step2')" id="tab-step2" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all bg-white text-slate-600 hover:bg-slate-100">
+            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold">2</span>
+            <span>Semáforo del Dinero</span>
+          </button>
+
+          <button onclick="window.tinkuyApp.switchTab('step3')" id="tab-step3" class="tab-btn flex items-center gap-2 px-4 py-2.5 rounded-2xl transition-all bg-white text-slate-600 hover:bg-slate-100">
+            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold">3</span>
+            <span>Botón de Rescate</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="window.tinkuyApp.switchTab('operational')" id="tab-operational" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-2xl transition-all bg-white text-slate-600 hover:bg-slate-100 text-xs">
+            <i data-lucide="clipboard-list" class="w-4 h-4 text-tinkuy-forest"></i>
+            <span>IA Operativa (OCs)</span>
+          </button>
+
+          <button onclick="window.tinkuyApp.switchTab('scoring')" id="tab-scoring" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-2xl transition-all bg-white text-slate-600 hover:bg-slate-100 text-xs">
+            <i data-lucide="shield-check" class="w-4 h-4 text-tinkuy-emerald"></i>
+            <span>Score B2B</span>
+          </button>
+
+          <button onclick="window.tinkuyApp.switchTab('economics')" id="tab-economics" class="tab-btn flex items-center gap-1.5 px-3 py-2 rounded-2xl transition-all bg-white text-slate-600 hover:bg-slate-100 text-xs">
+            <i data-lucide="calculator" class="w-4 h-4 text-tinkuy-coral"></i>
+            <span>Tu Tiempo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 1: FOTO AL CUADERNO / BOLETA -->
+      <!-- ========================================================================= -->
+      <section id="pane-step1" class="tab-pane block space-y-4 sm:space-y-6">
+        
+        <div class="responsive-grid grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          
+          <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h3 class="text-base sm:text-lg font-bold text-tinkuy-forest flex items-center gap-2">
+                    <i data-lucide="camera" class="w-5 h-5 text-tinkuy-coral"></i>
+                    1 · Captura sin fricción (Cámara o Galería)
+                  </h3>
+                  <p class="text-xs text-slate-500">
+                    Toma foto directa al cuaderno o boleta. Guardado automático en LocalStorage.
+                  </p>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-semibold flex items-center gap-1 border border-emerald-200 shrink-0">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  OCR Activo
+                </span>
+              </div>
+
+              <!-- Upload / Camera Action Buttons -->
+              <div class="border-2 border-dashed border-tinkuy-coral/30 hover:border-tinkuy-coral bg-tinkuy-blush/20 hover:bg-tinkuy-blush/40 rounded-3xl p-5 sm:p-7 text-center transition">
+                <input type="file" id="fileUpload" accept="image/*" class="hidden" onchange="window.tinkuyApp.handleFileUpload(event)" />
+                
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white shadow-soft flex items-center justify-center mx-auto mb-2.5 text-tinkuy-coral">
+                  <i data-lucide="camera" class="w-7 h-7 sm:w-8 sm:h-8"></i>
+                </div>
+                <h4 class="font-bold text-sm sm:text-base text-tinkuy-slate mb-1">
+                  Digitaliza tu cuaderno de ventas
+                </h4>
+                <p class="text-[11px] sm:text-xs text-slate-500 max-w-sm mx-auto mb-3">
+                  Funciona con cámara en vivo, fotos de galería o letra manuscrita.
+                </p>
+
+                <!-- Dual Trigger: Live Camera vs File Upload -->
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                  <button onclick="window.tinkuyApp.openLiveCamera()" class="px-4 py-2.5 rounded-full bg-tinkuy-coral text-white text-xs font-bold shadow-soft flex items-center gap-1.5 active:scale-95 transition">
+                    <i data-lucide="video" class="w-3.5 h-3.5"></i>
+                    Abrir Cámara en Vivo
+                  </button>
+                  <button onclick="document.getElementById('fileUpload').click()" class="px-4 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 flex items-center gap-1.5 active:scale-95 transition">
+                    <i data-lucide="image" class="w-3.5 h-3.5 text-tinkuy-forest"></i>
+                    Subir Imagen del Dispositivo
+                  </button>
+                </div>
+              </div>
+
+              <!-- Presets -->
+              <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-100">
+                <p class="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-tinkuy-gold"></i>
+                  O prueba con 1 toque estos casos reales:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onclick="window.tinkuyApp.loadPreset('gamarra_ventas')" class="text-left p-2.5 sm:p-3 rounded-2xl border border-slate-200 hover:border-tinkuy-coral hover:bg-tinkuy-blush/20 transition group active:scale-95">
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-tinkuy-coral block">Textil Gamarra</span>
+                    <span class="text-xs font-semibold text-slate-800 block">Cuaderno del día</span>
+                    <span class="text-[10px] text-slate-500">Polos, vestidos, blusas</span>
+                  </button>
+                  <button onclick="window.tinkuyApp.loadPreset('boleta_proveedor')" class="text-left p-2.5 sm:p-3 rounded-2xl border border-slate-200 hover:border-tinkuy-coral hover:bg-tinkuy-blush/20 transition group active:scale-95">
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-tinkuy-emerald block">Compra Proveedor</span>
+                    <span class="text-xs font-semibold text-slate-800 block">Boleta de ingreso</span>
+                    <span class="text-[10px] text-slate-500">Tela jersey 24/1, avíos</span>
+                  </button>
+                  <button onclick="window.tinkuyApp.loadPreset('abarrotes_granel')" class="text-left p-2.5 sm:p-3 rounded-2xl border border-slate-200 hover:border-tinkuy-coral hover:bg-tinkuy-blush/20 transition group active:scale-95">
+                    <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 block">Bazar & Granel</span>
+                    <span class="text-xs font-semibold text-slate-800 block">Peso y mermas</span>
+                    <span class="text-[10px] text-slate-500">Quinua, arroz granel</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Scanning Box -->
+            <div id="ocrScanningCard" class="hidden bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100 transition-all">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="scan" class="w-4 h-4 text-tinkuy-forest animate-spin"></i>
+                  <h4 class="font-bold text-xs sm:text-sm text-tinkuy-forest">Procesando con Gobierno de Datos...</h4>
+                </div>
+                <span id="scanProgressBadge" class="text-[10px] sm:text-xs font-bold text-tinkuy-coral bg-tinkuy-blush px-2 py-0.5 rounded-full">
+                  Extrayendo datos...
+                </span>
+              </div>
+
+              <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                <div class="relative rounded-2xl overflow-hidden bg-slate-900 aspect-[4/3] flex items-center justify-center">
+                  <img id="ocrPreviewImg" src="" alt="Cuaderno procesado" class="object-cover w-full h-full opacity-75" />
+                  <div id="laserScanBar" class="absolute w-full h-1 bg-gradient-to-r from-transparent via-tinkuy-coral to-transparent shadow-[0_0_15px_#e76f51] scanner-laser"></div>
+                  <div class="absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-md rounded-xl p-1.5 text-white text-[10px] flex items-center justify-between">
+                    <span>Foto capturada</span>
+                    <span class="text-emerald-400 font-semibold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Alta legibilidad</span>
+                  </div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                  <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <p class="font-semibold text-slate-700 text-xs mb-0.5 flex items-center justify-between">
+                      <span>Estandarización</span>
+                      <span class="text-emerald-600 font-bold">100% Homologado</span>
+                    </p>
+                    <p class="text-slate-500 text-[10px]">Normalizó a catálogo formal con tallas y atributos.</p>
+                  </div>
+                  
+                  <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                    <p class="font-semibold text-emerald-800 text-xs mb-0.5 flex items-center justify-between">
+                      <span>Data Quality Score</span>
+                      <span class="text-emerald-700 font-bold">96% Confiable</span>
+                    </p>
+                    <p class="text-emerald-600 text-[10px]">Auditado para cálculo de rotación real en LocalStorage.</p>
+                  </div>
+
+                  <div id="humanInTheLoopAlert" class="hidden p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                    <div class="flex items-start gap-2">
+                      <i data-lucide="help-circle" class="w-4 h-4 text-amber-600 mt-0.5 shrink-0"></i>
+                      <div class="w-full">
+                        <p class="font-bold text-[11px] text-amber-800">Duda de la IA (Human-in-the-Loop):</p>
+                        <p class="text-[10px] text-amber-700 mt-0.5">
+                          En la fila 2 el número está dudoso: ¿Es <strong>S/ 25.00</strong> o <strong>S/ 35.00</strong>?
+                        </p>
+                        <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                          <button onclick="window.tinkuyApp.resolveDoubt(25)" class="px-2.5 py-1 bg-amber-600 text-white rounded-lg font-bold text-[10px]">
+                            Confirmar S/ 25
+                          </button>
+                          <button onclick="window.tinkuyApp.resolveDoubt(35)" class="px-2.5 py-1 bg-white border border-amber-400 text-amber-800 rounded-lg font-bold text-[10px]">
+                            Es S/ 35
+                          </button>
+                          <button onclick="window.tinkuyApp.triggerAudioRescue()" class="px-2 py-1 bg-tinkuy-blush text-tinkuy-coral rounded-lg font-bold text-[10px] flex items-center gap-1">
+                            <i data-lucide="mic" class="w-3 h-3"></i> Audio voz
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inventory Section -->
+            <div id="extractedDataCard" class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                  <h4 class="font-bold text-sm sm:text-base text-tinkuy-forest flex items-center gap-1.5">
+                    <i data-lucide="database" class="w-4 h-4 text-tinkuy-coral"></i>
+                    Inventario en LocalStorage
+                  </h4>
+                  <p class="text-[11px] text-slate-500">Persistencia local sin servidores externos.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="window.tinkuyApp.openManualAddModal()" class="px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 text-tinkuy-forest"></i>
+                    Añadir
+                  </button>
+                  <button onclick="window.tinkuyApp.switchTab('step2')" class="px-3 py-1 rounded-xl bg-tinkuy-forest text-white text-xs font-bold hover:bg-tinkuy-forestDark flex items-center gap-1 shadow-sm">
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                    Semáforo
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mobile Cards -->
+              <div id="inventoryMobileCards" class="mobile-inventory-cards space-y-2.5"></div>
+
+              <!-- Desktop Table -->
+              <div class="desktop-inventory-table overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-tinkuy-sand text-slate-600 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                    <tr>
+                      <th class="px-3 py-2.5">Producto & Modelo</th>
+                      <th class="px-3 py-2.5">Variantes</th>
+                      <th class="px-3 py-2.5">Local</th>
+                      <th class="px-3 py-2.5 text-right">Stock</th>
+                      <th class="px-3 py-2.5 text-right">Costo</th>
+                      <th class="px-3 py-2.5 text-right">P. Venta</th>
+                      <th class="px-3 py-2.5 text-center">Rotación</th>
+                      <th class="px-3 py-2.5 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventoryTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                </table>
+              </div>
+
+              <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Total: <strong id="totalItemsCount" class="text-tinkuy-forest">8 items</strong></span>
+                <span class="flex items-center gap-1 text-emerald-600 font-semibold">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                  Ley 29733 Conforme
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column -->
+          <div class="space-y-4 sm:space-y-6">
+            <div class="bg-gradient-to-br from-white to-tinkuy-sand rounded-3xl p-4 sm:p-5 shadow-card border border-tinkuy-sandDark">
+              <h4 class="font-bold text-xs sm:text-sm text-tinkuy-forest mb-2 flex items-center gap-1.5">
+                <i data-lucide="award" class="w-4 h-4 text-tinkuy-coral"></i>
+                Para el ritmo real de Gamarra
+              </h4>
+              <ul class="space-y-2 text-xs text-slate-600">
+                <li class="flex items-start gap-2">
+                  <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 text-[10px]">✓</span>
+                  <div><strong>Onboarding invisible:</strong> Sin formularios. Foto + botón en 10 seg.</div>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 text-[10px]">✓</span>
+                  <div><strong>Human-in-the-loop:</strong> Si la IA duda, consulta amablemente.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="bg-gradient-to-br from-tinkuy-coral to-tinkuy-coralHover text-white rounded-3xl p-4 sm:p-5 shadow-float text-center">
+              <i data-lucide="zap" class="w-7 h-7 text-tinkuy-gold mx-auto mb-1.5"></i>
+              <h4 class="font-bold text-sm sm:text-base mb-1">¿Dónde está tu dinero atrapado?</h4>
+              <p class="text-xs text-white/85 mb-3">
+                Pasa al Paso 2 para ver qué mercadería congeló tu capital de trabajo.
+              </p>
+              <button onclick="window.tinkuyApp.switchTab('step2')" class="w-full py-2.5 rounded-xl bg-white text-tinkuy-coral font-bold text-xs hover:bg-tinkuy-sand transition shadow-sm">
+                Ir al Semáforo del Dinero →
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 2: EL SEMÁFORO DEL DINERO -->
+      <!-- ========================================================================= -->
+      <section id="pane-step2" class="tab-pane hidden space-y-4 sm:space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-lg sm:text-xl font-serif font-bold text-tinkuy-forest flex items-center gap-2">
+              <i data-lucide="traffic-cone" class="w-5 h-5 text-tinkuy-coral"></i>
+              2 · El Semáforo del Dinero
+            </h3>
+            <p class="text-xs text-slate-500">
+              Visualiza en 3 colores dónde está tu capital sin jerga contable.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="text-xs font-semibold text-slate-500">Rubro:</span>
+            <select id="categoryFilter" class="bg-white border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-semibold text-tinkuy-forest focus:outline-none">
+              <option value="all">Todos los rubros</option>
+              <option value="textil">👗 Confección & Textil</option>
+              <option value="bazar">🛠️ Bazar & Accesorios</option>
+              <option value="abarrotes">🌾 Abarrotes & Granel</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="responsive-grid grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          
+          <!-- 1. RED -->
+          <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border-t-4 border-red-500 relative transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500 -ml-4"></span>
+                <h4 class="font-bold text-sm sm:text-base text-red-700">En Alerta</h4>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-200">
+                +45d Parados
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mb-1">Capital inmovilizado:</p>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl sm:text-3xl font-extrabold text-red-600" id="statFrozenTotal">S/ 480.00</span>
+              <span class="text-xs text-slate-400">congelados</span>
+            </div>
+            <div class="space-y-2 mb-3 text-xs">
+              <div class="p-2 rounded-xl bg-red-50/60 border border-red-100 flex items-center justify-between">
+                <div>
+                  <p class="font-semibold text-slate-800 text-xs">Blusa Seda Satín Manga Larga</p>
+                  <p class="text-[10px] text-red-600">Parada 58 días (12 unid.)</p>
+                </div>
+                <span class="font-bold text-red-700 text-xs">S/ 300</span>
+              </div>
+            </div>
+            <button onclick="window.tinkuyApp.switchTab('step3')" class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+              <i data-lucide="life-buoy" class="w-4 h-4"></i>
+              Rescatar Dinero en 1 Clic
+            </button>
+          </div>
+
+          <!-- 2. YELLOW -->
+          <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border-t-4 border-amber-500 relative transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <h4 class="font-bold text-sm sm:text-base text-amber-700">Rotación Normal</h4>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">
+                15–30 Días
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mb-1">Flujo constante:</p>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl sm:text-3xl font-extrabold text-amber-600" id="statNormalTotal">S/ 1,420.00</span>
+              <span class="text-xs text-slate-400">en vitrina</span>
+            </div>
+            <div class="space-y-2 mb-3 text-xs">
+              <div class="p-2 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between">
+                <div>
+                  <p class="font-semibold text-slate-800 text-xs">Vestido Lino Verano Midi</p>
+                  <p class="text-[10px] text-slate-500">Rotación sana fin de semana</p>
+                </div>
+                <span class="font-bold text-slate-700 text-xs">S/ 728</span>
+              </div>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 text-[11px] text-slate-600 text-center">
+              Mantener precio actual.
+            </div>
+          </div>
+
+          <!-- 3. GREEN -->
+          <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border-t-4 border-emerald-500 relative transition">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <h4 class="font-bold text-sm sm:text-base text-emerald-700">Reabastecer / Estrella</h4>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200">
+                &lt;7 Días
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mb-1">¡Riesgo de quiebre!</p>
+            <div class="flex items-baseline gap-2 mb-3">
+              <span class="text-2xl sm:text-3xl font-extrabold text-emerald-600" id="statStarTotal">3 prods</span>
+              <span class="text-xs text-slate-400">por agotarse</span>
+            </div>
+            <div class="space-y-2 mb-3 text-xs">
+              <div class="p-2 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
+                <div>
+                  <p class="font-semibold text-slate-800 text-xs">Polo Oversize Algodón 24/1</p>
+                  <p class="text-[10px] text-emerald-600 font-bold">¡Quedan solo 4 unidades!</p>
+                </div>
+                <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[9px]">Estrella</span>
+              </div>
+            </div>
+            <button onclick="window.tinkuyApp.switchTab('operational')" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+              Generar Orden Compra (OC)
+            </button>
+          </div>
+
+        </div>
+
+        <div class="responsive-grid grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div class="lg:col-span-2 bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100">
+            <h4 class="font-bold text-xs sm:text-sm text-tinkuy-forest mb-2 flex items-center gap-1.5">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-tinkuy-coral"></i>
+              Distribución Modelo ABC
+            </h4>
+            <div class="h-56 sm:h-64 relative flex items-center justify-center">
+              <canvas id="abcChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-tinkuy-forest to-tinkuy-forestDark text-white rounded-3xl p-5 shadow-card flex flex-col justify-between">
+            <div>
+              <h4 class="font-serif font-bold text-base mb-1.5 text-tinkuy-gold">Recomendación IA:</h4>
+              <p class="text-xs text-white/85 leading-relaxed mb-3">
+                Tienes <strong class="text-tinkuy-gold">S/ 480 congelados</strong> en blusas paradas. Como los polos oversize vuelan, arma un Combo de Rescate para recuperar el costo sin perder margen.
+              </p>
+            </div>
+            <button onclick="window.tinkuyApp.switchTab('step3')" class="w-full py-2.5 rounded-xl bg-tinkuy-coral hover:bg-tinkuy-coralHover text-white font-bold text-xs shadow-float flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              Crear Combo Ahora
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 3: BOTÓN DE RESCATE -->
+      <!-- ========================================================================= -->
+      <section id="pane-step3" class="tab-pane hidden space-y-4 sm:space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-lg sm:text-xl font-serif font-bold text-tinkuy-forest flex items-center gap-2">
+              <i data-lucide="life-buoy" class="w-5 h-5 text-tinkuy-coral"></i>
+              3 · Botón de Rescate
+            </h3>
+            <p class="text-xs text-slate-500">
+              Combos de 1 producto estancado + 1 estrella protegiendo tu costo.
+            </p>
+          </div>
+          <button onclick="window.tinkuyApp.generateNewComboAI()" class="self-start sm:self-auto px-3.5 py-1.5 rounded-2xl bg-tinkuy-blush text-tinkuy-coral hover:bg-tinkuy-coral hover:text-white font-bold text-xs flex items-center gap-1 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            Otro Combo IA
+          </button>
+        </div>
+
+        <div class="responsive-grid grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100">
+              <h4 class="font-bold text-sm text-tinkuy-slate mb-3">Combo Sugerido por la IA</h4>
+
+              <div class="space-y-2 mb-4">
+                <div class="p-3 rounded-2xl bg-red-50/70 border border-red-200">
+                  <span class="text-[9px] font-bold uppercase text-red-600 block">Estancado (A Rescatar)</span>
+                  <p class="font-semibold text-xs text-slate-800" id="comboStagnantName">Blusa Seda Satín Manga Larga</p>
+                  <span class="text-[10px] text-slate-500">Costo: S/ 25.00 · P. Normal: S/ 45.00</span>
+                </div>
+
+                <div class="text-center text-tinkuy-coral font-bold text-sm">+</div>
+
+                <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                  <span class="text-[9px] font-bold uppercase text-emerald-700 block">Estrella (Gancho)</span>
+                  <p class="font-semibold text-xs text-slate-800" id="comboStarName">Polo Oversize Algodón 24/1</p>
+                  <span class="text-[10px] text-slate-500">Costo: S/ 18.00 · P. Normal: S/ 38.00</span>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-tinkuy-sand border border-slate-200 space-y-1.5 text-xs">
+                <div class="flex justify-between text-slate-500 text-[11px]">
+                  <span>Precio por separado:</span>
+                  <span class="line-through">S/ 83.00</span>
+                </div>
+                <div class="flex justify-between text-slate-700 font-bold text-xs">
+                  <span>Costo real de las dos prendas:</span>
+                  <span>S/ 43.00</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                  <span class="font-extrabold text-tinkuy-forest text-xs">Precio Combo:</span>
+                  <span class="text-lg font-extrabold text-tinkuy-coral" id="comboOfferPrice">S/ 59.90</span>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Titular del Afiche:</label>
+                <select id="posterHeadlineSelect" class="w-full text-xs font-semibold p-2 rounded-xl border border-slate-200 bg-white">
+                  <option value="¡OFERTA RELÁMPAGO DE HOY! 🔥">¡OFERTA RELÁMPAGO DE HOY! 🔥</option>
+                  <option value="COMBO EMPRENDEDORA GAMARRA ✨">COMBO EMPRENDEDORA GAMARRA ✨</option>
+                  <option value="LIQUIDACIÓN EXCLUSIVA 💖">LIQUIDACIÓN EXCLUSIVA 💖</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-4">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100 flex flex-col items-center">
+              <div class="w-full flex items-center justify-between mb-3">
+                <h4 class="font-bold text-xs sm:text-sm text-tinkuy-forest flex items-center gap-1.5">
+                  <i data-lucide="image" class="w-4 h-4 text-tinkuy-coral"></i>
+                  Afiche para WhatsApp
+                </h4>
+                <span class="text-[10px] font-bold text-slate-400">1080x1080px</span>
+              </div>
+
+              <!-- Canvas Container -->
+              <div class="poster-canvas-box w-full max-w-[300px] aspect-square rounded-2xl overflow-hidden shadow-card border-2 border-white bg-slate-100 mb-3">
+                <canvas id="posterCanvas" width="600" height="600" class="w-full h-full object-contain"></canvas>
+              </div>
+
+              <div class="w-full max-w-[300px] grid grid-cols-2 gap-2 mb-4">
+                <button onclick="window.tinkuyApp.downloadPoster()" class="py-2 rounded-xl border border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-center gap-1">
+                  <i data-lucide="download" class="w-3.5 h-3.5 text-tinkuy-forest"></i>
+                  Descargar
+                </button>
+                <button onclick="window.tinkuyApp.triggerConfetti()" class="py-2 rounded-xl bg-tinkuy-blush text-tinkuy-coral font-bold text-xs flex items-center justify-center gap-1">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                  Celebrar
+                </button>
+              </div>
+
+              <!-- WhatsApp Copy -->
+              <div class="w-full p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 text-xs">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="font-bold text-emerald-800 text-[11px] flex items-center gap-1">
+                    <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                    Mensaje para WhatsApp
+                  </span>
+                  <button onclick="window.tinkuyApp.copyWhatsAppText()" class="text-[11px] font-bold text-emerald-700 hover:underline">
+                    Copiar
+                  </button>
+                </div>
+                <p id="whatsappMessageText" class="text-slate-700 text-xs bg-white p-2.5 rounded-xl border border-emerald-100 select-all">
+                  "¡Hola caserita! ✨ Combo Especial: Polo Oversize Algodón + Blusa de Seda Satín por solo S/ 59.90. ¡Solo 3 combos disponibles!"
+                </p>
+
+                <div class="mt-2.5">
+                  <a id="whatsappShareLink" href="#" target="_blank" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Compartir en WhatsApp
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 4: IA OPERATIVA -->
+      <!-- ========================================================================= -->
+      <section id="pane-operational" class="tab-pane hidden space-y-4 sm:space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-[9px] font-bold uppercase tracking-wider text-tinkuy-forest bg-emerald-100 px-2 py-0.5 rounded-full mb-1 inline-block">
+              IA Operativa (Jurado 2)
+            </span>
+            <h3 class="text-lg sm:text-xl font-serif font-bold text-tinkuy-forest flex items-center gap-2">
+              <i data-lucide="clipboard-check" class="w-5 h-5 text-tinkuy-emerald"></i>
+              Órdenes de Compra Automáticas
+            </h3>
+            <p class="text-xs text-slate-500">
+              Genera la reposición para proveedores sin perder tiempo.
+            </p>
+          </div>
+        </div>
+
+        <div class="responsive-grid grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          
+          <div class="lg:col-span-2 bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-tinkuy-blush text-tinkuy-coral flex items-center justify-center font-bold text-xs">
+                  OC
+                </div>
+                <div>
+                  <h4 class="font-bold text-xs sm:text-sm text-slate-800">Orden #OC-2026-089</h4>
+                  <p class="text-[10px] text-slate-500">Proveedor: Confecciones Don Carlos</p>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200">
+                Lista
+              </span>
+            </div>
+
+            <div class="space-y-2 mb-4 text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div>
+                  <p class="font-bold text-slate-800">Polo Oversize Algodón 24/1</p>
+                  <p class="text-[10px] text-slate-500">3 docenas (36 unid) · Blanco, Negro, Beige</p>
+                </div>
+                <span class="font-bold text-slate-800 text-xs">S/ 648.00</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div>
+                  <p class="font-bold text-slate-800">Top Rib Básico Colores</p>
+                  <p class="text-[10px] text-slate-500">2 docenas (24 unid)</p>
+                </div>
+                <span class="font-bold text-slate-800 text-xs">S/ 288.00</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-tinkuy-sand border border-slate-200 mb-4 flex items-center justify-between text-xs">
+              <div>
+                <p class="text-[10px] text-slate-500">Inversión requerida:</p>
+                <p class="text-base font-extrabold text-tinkuy-forest">Total: S/ 936.00</p>
+              </div>
+              <div class="text-right">
+                <span class="text-emerald-700 font-bold text-[10px]">Ganancia proyectada:</span>
+                <p class="text-xs font-bold text-emerald-800">+ S/ 864.00</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button onclick="window.tinkuyApp.sendOrderToSupplierWhatsApp()" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                Enviar Orden por WhatsApp
+              </button>
+              <button onclick="window.tinkuyApp.printOrderReceipt()" class="py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="printer" class="w-4 h-4 text-tinkuy-forest"></i>
+                Imprimir o PDF
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100">
+            <h4 class="font-bold text-xs sm:text-sm text-tinkuy-forest mb-2.5 flex items-center gap-1.5">
+              <i data-lucide="check-square" class="w-4 h-4 text-tinkuy-coral"></i>
+              Plan Operativo
+            </h4>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 cursor-pointer">
+                <input type="checkbox" checked class="mt-0.5 rounded text-tinkuy-coral" />
+                <span class="text-[11px] text-slate-700">Subir foto del cierre de tienda (6:30 pm).</span>
+              </label>
+              <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 cursor-pointer">
+                <input type="checkbox" checked class="mt-0.5 rounded text-tinkuy-coral" />
+                <span class="text-[11px] text-slate-700">Publicar afiche en WhatsApp.</span>
+              </label>
+              <label class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 cursor-pointer">
+                <input type="checkbox" class="mt-0.5 rounded text-tinkuy-coral" />
+                <span class="text-[11px] text-slate-700">Autorizar Orden para Don Carlos.</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 5: INCLUSIÓN FINANCIERA -->
+      <!-- ========================================================================= -->
+      <section id="pane-scoring" class="tab-pane hidden space-y-4 sm:space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-lg sm:text-xl font-serif font-bold text-tinkuy-forest flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-5 h-5 text-tinkuy-emerald"></i>
+              Inclusión Financiera: Tinkuy Score
+            </h3>
+            <p class="text-xs text-slate-500">
+              Score alternativo basado en tus datos reales de rotación.
+            </p>
+          </div>
+        </div>
+
+        <div class="responsive-grid grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          
+          <div class="lg:col-span-7 bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100 space-y-4">
+            <div class="flex items-center justify-between p-4 rounded-3xl bg-gradient-to-br from-tinkuy-forest to-tinkuy-emerald text-white">
+              <div>
+                <p class="text-[10px] text-white/70 uppercase font-semibold">Salud de Negocio</p>
+                <h4 class="text-2xl font-extrabold font-serif">Tinkuy Score</h4>
+                <p class="text-[11px] text-emerald-200">Basado en 28 días de registro</p>
+              </div>
+              <div class="text-center bg-white/10 px-4 py-2.5 rounded-2xl border border-white/20">
+                <span class="text-3xl font-extrabold text-tinkuy-gold" id="scoreBigNumber">785</span>
+                <span class="text-xs text-white/70">/1000</span>
+                <span class="block text-[9px] font-bold text-emerald-300 uppercase">Excelente</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <label class="flex items-start gap-2.5 cursor-pointer">
+                <input type="checkbox" checked onchange="window.tinkuyApp.toggleBankSharing(this.checked)" class="mt-1 rounded text-tinkuy-emerald" />
+                <div class="text-[11px] text-slate-600">
+                  <strong class="text-slate-800 block">Consentimiento de Compartición (Ley N° 29733):</strong>
+                  Autorizo compartir mis métricas de forma anonimizada para recibir ofertas de microcrédito formal.
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100 space-y-3">
+            <h4 class="font-bold text-xs sm:text-sm text-tinkuy-forest flex items-center gap-1.5">
+              <i data-lucide="landmark" class="w-4 h-4 text-tinkuy-coral"></i>
+              Créditos Preaprobados
+            </h4>
+            
+            <div class="p-3 rounded-2xl border border-emerald-200 bg-emerald-50/40 space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <strong class="text-slate-800">Caja Arequipa</strong>
+                <span class="font-extrabold text-emerald-700">S/ 5,000</span>
+              </div>
+              <p class="text-[10px] text-slate-500">Tasa preferencial: 1.8% mensual Mype</p>
+              <button onclick="window.tinkuyApp.requestCreditOffer('Caja Arequipa', 5000)" class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold">
+                Solicitar Evaluación
+              </button>
+            </div>
+
+            <div class="p-3 rounded-2xl border border-slate-200 bg-white space-y-1.5 text-xs">
+              <div class="flex items-center justify-between">
+                <strong class="text-slate-800">Caja Huancayo</strong>
+                <span class="font-extrabold text-slate-700">S/ 3,500</span>
+              </div>
+              <p class="text-[10px] text-slate-500">Capital de trabajo 12 meses</p>
+              <button onclick="window.tinkuyApp.requestCreditOffer('Caja Huancayo', 3500)" class="w-full py-1.5 border border-slate-200 text-slate-700 rounded-xl text-[11px] font-bold">
+                Consultar
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- TAB 6: TU TIEMPO & UNIT ECONOMICS -->
+      <!-- ========================================================================= -->
+      <section id="pane-economics" class="tab-pane hidden space-y-4 sm:space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span class="text-[9px] font-bold uppercase tracking-wider text-tinkuy-coral bg-tinkuy-blush px-2 py-0.5 rounded-full mb-1 inline-block">
+              Unit Economics (Jurado 2)
+            </span>
+            <h3 class="text-lg sm:text-xl font-serif font-bold text-tinkuy-forest flex items-center gap-2">
+              <i data-lucide="calculator" class="w-5 h-5 text-tinkuy-coral"></i>
+              Calculadora de Tiempo y Rentabilidad
+            </h3>
+            <p class="text-xs text-slate-500">
+              Asigna valor a tus horas para medir tu beneficio real.
+            </p>
+          </div>
+        </div>
+
+        <div class="responsive-grid grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+          
+          <div class="lg:col-span-6 bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100 space-y-3 sm:space-y-4 text-xs">
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold">
+                <span>Venta Mensual:</span>
+                <span class="text-tinkuy-forest font-bold" id="lblSalesVal">S/ 12,000.00</span>
+              </div>
+              <input type="range" id="sliderSales" min="3000" max="40000" step="500" value="12000" class="w-full accent-tinkuy-forest" />
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold">
+                <span>Costo Mercadería (COGS):</span>
+                <span class="font-bold" id="lblCogsVal">50%</span>
+              </div>
+              <input type="range" id="sliderCogs" min="25" max="75" step="1" value="50" class="w-full accent-tinkuy-coral" />
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between font-semibold">
+                <span>OPEX (Alquiler + Vendedora):</span>
+                <span class="font-bold" id="lblOpexVal">S/ 2,800.00</span>
+              </div>
+              <input type="range" id="sliderOpex" min="500" max="10000" step="100" value="2800" class="w-full accent-amber-600" />
+            </div>
+
+            <div class="p-3 rounded-2xl bg-tinkuy-blush/40 border border-tinkuy-coral/20 space-y-2">
+              <div class="flex justify-between font-semibold text-tinkuy-coral">
+                <span>Tu sueldo por hora de gestión:</span>
+                <span class="font-bold" id="lblHourlyRate">S/ 25.00 / hr</span>
+              </div>
+              <input type="range" id="sliderHourlyRate" min="10" max="80" step="5" value="25" class="w-full accent-tinkuy-coral" />
+
+              <div class="flex justify-between font-semibold text-slate-700 text-[11px]">
+                <span>Horas al mes contando stock:</span>
+                <span class="font-bold" id="lblHoursSpent">35 hrs</span>
+              </div>
+              <input type="range" id="sliderHoursSpent" min="5" max="80" step="5" value="35" class="w-full accent-slate-700" />
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 bg-white rounded-3xl p-4 sm:p-6 shadow-card border border-slate-100 flex flex-col justify-between text-xs">
+            <div class="space-y-2 mb-3">
+              <h4 class="font-bold text-sm text-slate-800 mb-2">Resultado Real Limpio</h4>
+              <div class="flex justify-between p-2 rounded-xl bg-slate-50">
+                <span>Ventas:</span>
+                <span id="resSales" class="font-semibold">S/ 12,000.00</span>
+              </div>
+              <div class="flex justify-between p-2 rounded-xl bg-red-50/60 text-red-700">
+                <span>(-) COGS:</span>
+                <span id="resCogs" class="font-bold">- S/ 6,000.00</span>
+              </div>
+              <div class="flex justify-between p-2 rounded-xl bg-amber-50 text-amber-800">
+                <span>(-) OPEX:</span>
+                <span id="resOpex" class="font-bold">- S/ 2,800.00</span>
+              </div>
+              <div class="flex justify-between p-2 rounded-xl bg-tinkuy-blush text-tinkuy-coral font-bold">
+                <span>(-) Tu Tiempo Imputado:</span>
+                <span id="resOwnTimeCost">- S/ 875.00</span>
+              </div>
+              <div class="flex justify-between p-3 rounded-2xl bg-emerald-50 border border-emerald-300 font-extrabold text-emerald-900">
+                <span>Beneficio Neto Real:</span>
+                <span id="resNetReal" class="text-base sm:text-lg text-emerald-700 font-extrabold">S/ 2,325.00</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-2xl bg-gradient-to-r from-tinkuy-forest to-tinkuy-emerald text-white text-[11px] leading-relaxed">
+              Con Tinkuy ahorras <strong class="text-tinkuy-gold">26 horas al mes</strong>, recuperando <strong class="text-tinkuy-gold" id="lblMoneySaved">S/ 650.00</strong> de tu tiempo.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE BOTTOM NAVIGATION (STICKY NATIVO PARA CELULARES) -->
+  <!-- ========================================================================= -->
+  <nav class="mobile-bottom-bar bg-white/95 backdrop-blur-lg border-t border-slate-200 px-3 py-1.5 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+    
+    <button onclick="window.tinkuyApp.switchTab('step1')" id="mob-nav-step1" class="mobile-nav-btn flex flex-col items-center justify-center text-tinkuy-coral font-bold py-1 px-2 relative transition">
+      <i data-lucide="camera" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5">Foto</span>
+      <span class="nav-indicator w-1.5 h-1.5 rounded-full bg-tinkuy-coral absolute -bottom-0.5"></span>
+    </button>
+
+    <button onclick="window.tinkuyApp.switchTab('step2')" id="mob-nav-step2" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 py-1 px-2 relative transition">
+      <i data-lucide="traffic-cone" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5">Semáforo</span>
+      <span class="nav-indicator hidden w-1.5 h-1.5 rounded-full bg-tinkuy-coral absolute -bottom-0.5"></span>
+    </button>
+
+    <!-- Center Floating Action Button (Foto Rápida en Vivo) -->
+    <div class="-mt-5">
+      <button onclick="window.tinkuyApp.openLiveCamera()" class="w-12 h-12 rounded-full bg-gradient-to-tr from-tinkuy-coral to-tinkuy-coralHover text-white flex items-center justify-center shadow-float pulse-fab border-2 border-white transition active:scale-95" title="Tomar Foto al Cuaderno">
+        <i data-lucide="camera" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <button onclick="window.tinkuyApp.switchTab('step3')" id="mob-nav-step3" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 py-1 px-2 relative transition">
+      <i data-lucide="life-buoy" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5">Rescate</span>
+      <span class="nav-indicator hidden w-1.5 h-1.5 rounded-full bg-tinkuy-coral absolute -bottom-0.5"></span>
+    </button>
+
+    <button onclick="window.tinkuyApp.switchTab('operational')" id="mob-nav-operational" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 py-1 px-2 relative transition">
+      <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5">Compras</span>
+      <span class="nav-indicator hidden w-1.5 h-1.5 rounded-full bg-tinkuy-coral absolute -bottom-0.5"></span>
+    </button>
+
+    <button onclick="window.tinkuyApp.switchTab('scoring')" id="mob-nav-scoring" class="mobile-nav-btn flex flex-col items-center justify-center text-slate-400 py-1 px-2 relative transition">
+      <i data-lucide="shield-check" class="w-5 h-5"></i>
+      <span class="text-[10px] mt-0.5">Score</span>
+      <span class="nav-indicator hidden w-1.5 h-1.5 rounded-full bg-tinkuy-coral absolute -bottom-0.5"></span>
+    </button>
+
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- MODALES DEL SISTEMA -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. LIVE CAMERA MODAL (CÁMARA REAL EN VIVO) -->
+  <div id="liveCameraModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 modal-sheet-container">
+    <div class="bg-white rounded-3xl max-w-md w-full p-4 sm:p-5 shadow-2xl space-y-3 modal-sheet-box text-center">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h4 class="font-bold text-sm text-tinkuy-forest flex items-center gap-1.5">
+          <i data-lucide="video" class="w-4 h-4 text-tinkuy-coral"></i>
+          Cámara en Vivo (Cuaderno o Boleta)
+        </h4>
+        <button onclick="window.tinkuyApp.closeLiveCamera()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Live Video Feed -->
+      <div class="relative aspect-[4/3] rounded-2xl overflow-hidden bg-black flex items-center justify-center border-2 border-slate-800">
+        <video id="cameraVideoFeed" autoplay playsinline class="w-full h-full object-cover"></video>
+        <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg text-white text-[10px] flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> EN VIVO
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="pt-1 flex gap-2">
+        <button onclick="window.tinkuyApp.captureCameraSnapshot()" class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-tinkuy-coral to-tinkuy-coralHover text-white font-bold text-xs sm:text-sm shadow-float flex items-center justify-center gap-2 active:scale-95 transition">
+          <i data-lucide="camera" class="w-5 h-5"></i>
+          Capturar y Procesar Foto
+        </button>
+        <button onclick="window.tinkuyApp.closeLiveCamera()" class="px-4 py-3 rounded-2xl border border-slate-200 text-xs font-semibold text-slate-600">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. GEMINI API KEY MODAL (LOCALSTORAGE) -->
+  <div id="geminiKeyModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 modal-sheet-container">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3.5 modal-sheet-box">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-tinkuy-blush text-tinkuy-coral flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-sm text-slate-800">Google Gemini API (Opcional)</h4>
+            <p class="text-[10px] text-slate-500">Procesa fotos con Gemini 1.5 Flash Vision</p>
+          </div>
+        </div>
+        <button onclick="window.tinkuyApp.closeGeminiKeyModal()" class="text-slate-400">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <p class="text-slate-600 leading-relaxed text-[11px]">
+          Tu API Key se almacena <strong>únicamente en tu navegador (LocalStorage)</strong> de forma 100% privada y local. Si no ingresas una clave, Tinkuy IA continuará funcionando de forma <strong>100% offline</strong> con el motor local.
+        </p>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1 text-[11px]">API Key de Gemini:</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs focus:bg-white" />
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-[11px] text-emerald-800 flex items-center justify-between">
+          <span>¿No tienes clave? Es gratis:</span>
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="font-bold underline text-emerald-700 hover:text-emerald-900">
+            Obtener gratis en Google AI Studio ↗
+          </a>
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button onclick="window.tinkuyApp.saveGeminiApiKey()" class="flex-1 py-2.5 rounded-xl bg-tinkuy-forest text-white font-bold text-xs hover:bg-tinkuy-forestDark">
+          Guardar en LocalStorage
+        </button>
+        <button onclick="document.getElementById('geminiApiKeyInput').value = ''; window.tinkuyApp.saveGeminiApiKey();" class="px-3 py-2.5 rounded-xl border border-slate-200 text-xs text-red-600 font-semibold hover:bg-red-50">
+          Borrar Clave
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. AUDIO RESCUE MODAL (MICRÓFONO REAL) -->
+  <div id="audioRescueModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 modal-sheet-container">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-center shadow-2xl space-y-3 modal-sheet-box">
+      <div class="w-14 h-14 rounded-full bg-tinkuy-blush text-tinkuy-coral flex items-center justify-center mx-auto animate-pulse">
+        <i data-lucide="mic" class="w-7 h-7"></i>
+      </div>
+      <h4 class="font-bold text-base text-slate-800">Audio de Rescate por Voz</h4>
+      <p class="text-xs text-slate-500">
+        Habla claramente al micrófono para corregir cualquier valor.
+      </p>
+
+      <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs italic text-slate-700" id="audioTranscript">
+        "Escuchando micrófono..."
+      </div>
+
+      <div class="text-left">
+        <label class="block font-semibold text-slate-700 text-[10px] mb-1">O escribe la corrección:</label>
+        <input type="text" id="audioTextInput" value="Eran 6 blusas a 35 soles" class="w-full p-2 rounded-xl border border-slate-200 text-xs bg-white" />
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="window.tinkuyApp.confirmAudioRescue()" class="flex-1 py-2.5 rounded-xl bg-tinkuy-coral text-white font-bold text-xs">
+          Aplicar Corrección
+        </button>
+        <button onclick="window.tinkuyApp.closeAudioModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. MANUAL ADD PRODUCT MODAL -->
+  <div id="manualAddModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 modal-sheet-container">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-3 modal-sheet-box">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h4 class="font-bold text-sm text-tinkuy-forest flex items-center gap-1.5">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-tinkuy-coral"></i>
+          Añadir Producto
+        </h4>
+        <button onclick="window.tinkuyApp.closeManualAddModal()" class="text-slate-400">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <form onsubmit="window.tinkuyApp.handleManualAdd(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-0.5">Producto / Modelo</label>
+          <input type="text" id="mName" required placeholder="Ej. Falda Jean Rota" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">Categoría</label>
+            <select id="mCategory" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50">
+              <option value="textil">Textil / Ropa</option>
+              <option value="bazar">Bazar / Hogar</option>
+              <option value="abarrotes">Abarrotes</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">Variantes (Talla/Color)</label>
+            <input type="text" id="mVariants" placeholder="Ej. Talla 28 / Azul" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50" />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">Stock</label>
+            <input type="number" id="mStock" required value="10" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">Costo (S/)</label>
+            <input type="number" id="mCost" required step="0.5" value="22" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">P. Venta (S/)</label>
+            <input type="number" id="mPrice" required step="0.5" value="40" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-0.5">Local</label>
+          <select id="mStore" class="w-full p-2 rounded-xl border border-slate-200 bg-slate-50">
+            <option value="guisado">Galería Guisado (#104)</option>
+            <option value="el_rey">Galería El Rey (#215)</option>
+            <option value="almacen">Almacén Central</option>
+          </select>
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-tinkuy-coral text-white font-bold text-xs">
+            Guardar en LocalStorage
+          </button>
+          <button type="button" onclick="window.tinkuyApp.closeManualAddModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. DECK MODAL -->
+  <div id="deckInfoModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 modal-sheet-container">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto space-y-3 sm:space-y-4 modal-sheet-box">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-tinkuy-forest text-white flex items-center justify-center">
+            <i data-lucide="book-open" class="w-4 h-4 text-tinkuy-gold"></i>
+          </div>
+          <div>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-tinkuy-forest">Tinkuy IA — Pitch Deck & Jurado</h3>
+            <p class="text-[10px] sm:text-xs text-slate-500">Fundamentos y resolución técnica</p>
+          </div>
+        </div>
+        <button onclick="window.tinkuyApp.closeDeckModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+        <div class="p-3 rounded-2xl bg-tinkuy-blush/50 border border-tinkuy-coral/20">
+          <h4 class="font-bold text-tinkuy-coral mb-0.5">Jurado 1: Gobernanza de Datos & Anti-Sesgos</h4>
+          <p>Taxonomía estandarizada (talla, color, modelo, costo, precio) con Data Quality Score (96%). Sin asumir falta de instrucción.</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+          <h4 class="font-bold text-emerald-800 mb-0.5">Jurado 2: Multitienda & IA Operativa</h4>
+          <p>Soporte multitienda en Gamarra + Consolidado. Generación formal de Órdenes de Compra a proveedores en 1 clic.</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+          <h4 class="font-bold text-slate-800 mb-0.5">Jurado 3: Foso en Datos Propios</h4>
+          <p>Tinkuy Score (0-1000) basado en 90 días de rotación para microcréditos con Caja Arequipa y Huancayo.</p>
+        </div>
+      </div>
+
+      <div class="pt-2 text-right">
+        <button onclick="window.tinkuyApp.closeDeckModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tinkuy-forest text-white font-bold text-xs">
+          Entendido, volver a la App
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ES MODULE ARCHITECTURE ENTRYPOINT -->
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
