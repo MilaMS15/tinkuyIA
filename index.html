@@ -137,7 +137,14 @@
           </button>
         </div>
 
-        <button onclick="window.tinkuyApp.openDeckModal()" class="w-8 h-8 rounded-xl bg-tinkuy-blush text-tinkuy-coral flex items-center justify-center hover:bg-tinkuy-coral hover:text-white transition shrink-0" title="Ver Pitch Deck">
+        <!-- Visión Jurado & Cuaderno Quick Button -->
+        <button onclick="window.tinkuyApp.switchTab('juradoVision')" class="px-2.5 py-1 rounded-xl bg-tinkuy-blush text-tinkuy-coral border border-tinkuy-coral/20 font-bold text-[11px] flex items-center gap-1 hover:bg-tinkuy-coral hover:text-white transition shadow-sm" title="Ver Visión Jurado 3, Cuaderno y Buyer Persona">
+          <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Visión & Cuaderno</span>
+          <span class="sm:hidden">Visión</span>
+        </button>
+
+        <button onclick="window.tinkuyApp.openDeckModal()" class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-tinkuy-coral hover:text-white transition shrink-0" title="Ver Fundamentos de Jurados">
           <i data-lucide="info" class="w-4 h-4"></i>
         </button>
       </div>
@@ -240,6 +247,11 @@
             <i data-lucide="calculator" class="w-4 h-4 text-tinkuy-coral"></i>
             <span>Tu Tiempo</span>
           </button>
+
+          <button onclick="window.tinkuyApp.switchTab('juradoVision')" id="tab-juradoVision" class="tab-btn flex items-center gap-1.5 px-3.5 py-2 rounded-2xl transition-all bg-tinkuy-blush text-tinkuy-coral hover:bg-tinkuy-coral hover:text-white text-xs font-bold border border-tinkuy-coral/30">
+            <i data-lucide="compass" class="w-4 h-4 text-tinkuy-coral"></i>
+            <span>Visión Jurado & Cuaderno</span>
+          </button>
         </div>
       </div>
 
@@ -317,6 +329,64 @@
                     <span class="text-xs font-semibold text-slate-800 block">Peso y mermas</span>
                     <span class="text-[10px] text-slate-500">Quinua, arroz granel</span>
                   </button>
+                </div>
+              </div>
+
+              <!-- Mini Guía Interactiva del Cuaderno Físico (Resolución Jurado 1 & 3) -->
+              <div class="mt-4 pt-3 border-t border-slate-100">
+                <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50/80 via-rose-50/40 to-amber-50/60 border border-amber-200/80">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="flex items-start gap-2.5">
+                      <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
+                        <i data-lucide="book-open-check" class="w-4 h-4 text-amber-800"></i>
+                      </div>
+                      <div>
+                        <h5 class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                          <span>¿Qué datos exactos debe tener el cuaderno?</span>
+                          <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 font-extrabold uppercase">Jurado 1 & 3</span>
+                        </h5>
+                        <p class="text-[11px] text-amber-900/80 mt-0.5">
+                          Resolución al vacío de datos de los proyectos: para que la IA no generalice y calcule el capital congelado real, el cuaderno requiere estos <strong>7 campos estandarizados</strong>:
+                        </p>
+                      </div>
+                    </div>
+                    <button onclick="window.tinkuyApp.switchTab('juradoVision')" class="self-start sm:self-center px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] shrink-0 transition flex items-center gap-1 shadow-sm">
+                      <span>Ver Análisis Completo</span>
+                      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+
+                  <!-- 7 Standardized Fields Badges -->
+                  <div class="mt-2.5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5 text-[10px]">
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">1. Fecha</span>
+                      <span class="text-[9px] text-slate-500">Mide días estancados</span>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">2. Prenda / Modelo</span>
+                      <span class="text-[9px] text-slate-500">Polo, vestido, short</span>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">3. Variantes</span>
+                      <span class="text-[9px] text-slate-500">Talla, color y tela</span>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">4. Costo Taller (Cu)</span>
+                      <span class="text-[9px] text-slate-500">Base dinero en riesgo</span>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">5. Precio Venta (Pv)</span>
+                      <span class="text-[9px] text-slate-500">Margen unitario real</span>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">6. Entradas</span>
+                      <span class="text-[9px] text-slate-500">Stock confeccionado</span>
+                    </div>
+                    <div class="p-1.5 rounded-lg bg-white/90 border border-amber-200 text-slate-700">
+                      <span class="font-bold text-amber-800 block">7. Saldo Actual</span>
+                      <span class="text-[9px] text-slate-500">Prendas remanentes</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1029,6 +1099,502 @@
 
       </section>
 
+      <!-- ========================================================================= -->
+      <!-- TAB ESPECIAL: VISIÓN JURADO 3, EL CUADERNO AL DETALLE & BUYER PERSONA -->
+      <!-- ========================================================================= -->
+      <section id="pane-juradoVision" class="tab-pane hidden space-y-6 sm:space-y-8">
+        
+        <!-- Header Banner Visión Jurado -->
+        <div class="bg-gradient-to-r from-tinkuy-forestDark via-tinkuy-forest to-tinkuy-emerald text-white rounded-3xl p-5 sm:p-8 shadow-card relative overflow-hidden">
+          <div class="absolute -right-12 -bottom-16 opacity-10 pointer-events-none hidden sm:block">
+            <i data-lucide="compass" class="w-72 h-72 text-white"></i>
+          </div>
+          <div class="relative z-10 max-w-3xl">
+            <div class="inline-flex items-center gap-2 bg-tinkuy-gold/20 text-tinkuy-gold border border-tinkuy-gold/30 px-3 py-1 rounded-full text-xs font-bold mb-3">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>Resolución Integral a los Jurados 1, 2 y 3</span>
+            </div>
+            <h2 class="text-xl sm:text-3xl font-serif font-bold tracking-tight text-white mb-2">
+              Visión Más Allá de la IA & El Cuaderno al Detalle
+            </h2>
+            <p class="text-white/90 text-xs sm:text-sm leading-relaxed mb-4">
+              Resolviendo el vacío de datos de todos los proyectos: qué datos exactos se anotan en el papel, cómo los procesa la IA sin jerga para la emprendedora, el efecto en cadena desde un buyer persona validado y la creación del foso defensivo en datos propios.
+            </p>
+            
+            <!-- Cita Destacada Jurado 3 -->
+            <div class="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm text-white/95 italic">
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="quote" class="w-5 h-5 text-tinkuy-gold shrink-0 mt-0.5"></i>
+                <div>
+                  <p class="font-medium">
+                    "No veamos una limitante solo en lo que sabemos que podría hacer la IA; podemos tener una visión más allá, aunque no dominemos el detalle técnico la idea estaría en la visión... Abstraerse de la pregunta 'qué puedo abarcar con la tecnología': la solución no tiene que ser solo IA (ej. avatares). A nivel de producto basta con apuntar a la visión de mercado... La clave diferencial son los datos propios: todos pueden usar las mismas IAs, pero los datos del negocio son lo que marca la diferencia."
+                  </p>
+                  <p class="not-italic text-[11px] text-tinkuy-gold font-bold mt-1">
+                    — Jurado 3, Evaluación y Feedback de Cierre
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BLOQUE 1: EL EFECTO EN CADENA & BUYER PERSONA EN HOJA EN BLANCO -->
+        <!-- ========================================================================= -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-card border border-slate-100 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-tinkuy-blush text-tinkuy-coral flex items-center justify-center font-bold text-xs">1</span>
+                <h3 class="font-serif font-bold text-base sm:text-lg text-tinkuy-forest">
+                  El Efecto en Cadena & Buyer Persona Validado
+                </h3>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Partiendo de una "hoja en blanco" y rompiendo los sesgos de instrucción y género (Jurados 1 y 3).
+              </p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 self-start sm:self-auto">
+              ✓ Hoja en Blanco
+            </span>
+          </div>
+
+          <!-- Rompiendo los Sesgos detectados por el Jurado 1 y 3 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="p-3.5 rounded-2xl bg-red-50/60 border border-red-200/80 text-xs space-y-1">
+              <span class="font-bold text-red-800 flex items-center gap-1.5">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600"></i>
+                Sesgos Detectados por los Jurados 1 y 3 (A Evitar)
+              </span>
+              <ul class="space-y-1 text-[11px] text-red-700 list-disc list-inside">
+                <li>Asumir que las emprendedoras mype "no tienen instrucción" o "no saben manejar tecnología".</li>
+                <li>Reducir a la mujer solo a rubros domésticos estereotipados.</li>
+                <li>Olvidar que ser MYPE depende exclusivamente del <strong>nivel de ventas</strong>, no de la escolaridad.</li>
+              </ul>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs space-y-1">
+              <span class="font-bold text-emerald-800 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                La Realidad de la Emprendedora MYPE (Validada)
+              </span>
+              <ul class="space-y-1 text-[11px] text-emerald-700 list-disc list-inside">
+                <li>Facturación mensual de S/ 15,000 a S/ 35,000 en galerías de Gamarra.</li>
+                <li>Usa activamente WhatsApp Business, Yape, Plin y banca móvil a diario.</li>
+                <li>Su problema no es capacidad mental ni digital, es <strong>falta crítica de tiempo operativo</strong>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Ficha Detallada del Buyer Persona -->
+          <div class="bg-gradient-to-br from-tinkuy-sand to-amber-50/40 rounded-3xl p-5 border border-tinkuy-sandDark">
+            <div class="flex flex-col lg:flex-row items-start gap-4 sm:gap-6">
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-tinkuy-coral to-tinkuy-forest text-white flex items-center justify-center font-bold text-xl sm:text-2xl shadow-soft shrink-0">
+                RQ
+              </div>
+              <div class="space-y-2.5 flex-1">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 class="font-bold text-sm sm:text-base text-tinkuy-forest">
+                      Rosa Quispe Mamani (38 años)
+                    </h4>
+                    <p class="text-xs text-slate-600">
+                      Confeccionista & Comerciante MYPE · <strong>Galería Guisado (#104) y El Rey (#215)</strong>, Gamarra
+                    </p>
+                  </div>
+                  <div class="flex gap-1.5 text-[10px] font-bold">
+                    <span class="px-2.5 py-0.5 rounded-full bg-tinkuy-forest text-white">Ventas: S/ 25,000/mes</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-tinkuy-coral text-white">2 Tiendas + 1 Taller</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700 pt-2 border-t border-slate-200">
+                  <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200">
+                    <strong class="text-tinkuy-forest block text-[11px] mb-0.5">Rutina Real:</strong>
+                    <p class="text-[11px] text-slate-600 leading-tight">
+                      Jornada de 14 hrs. Compra rollos de tela en La Victoria, supervisa costura en taller y reparte pedidos.
+                    </p>
+                  </div>
+                  <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200">
+                    <strong class="text-tinkuy-coral block text-[11px] mb-0.5">Dolor Crítico (Pain Point):</strong>
+                    <p class="text-[11px] text-slate-600 leading-tight">
+                      Su vendedora (Karina) anota en libreta de papel mientras despacha. Rosa no sabe qué prendas quedaron descalzadas hasta fin de mes.
+                    </p>
+                  </div>
+                  <div class="bg-white/80 p-2.5 rounded-xl border border-slate-200">
+                    <strong class="text-emerald-800 block text-[11px] mb-0.5">Consecuencia Financiera:</strong>
+                    <p class="text-[11px] text-slate-600 leading-tight">
+                      S/ 3,500 congelados en 48 vestidos palo rosa que no rotan, ahogando su liquidez para pagar el alquiler de la galería.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Diagrama Interactivo del Efecto en Cadena -->
+          <div>
+            <h4 class="font-bold text-xs sm:text-sm text-slate-800 mb-2 flex items-center gap-1.5">
+              <i data-lucide="link" class="w-4 h-4 text-tinkuy-coral"></i>
+              El Efecto en Cadena: Del Buyer Persona a la Acción Ejecutable
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
+              <div class="p-3 rounded-2xl bg-tinkuy-sand border border-slate-200 relative group">
+                <span class="text-[9px] font-bold uppercase text-tinkuy-coral block mb-1">Paso 1 · Persona</span>
+                <strong class="text-slate-800 text-xs block">Rosa en Gamarra</strong>
+                <p class="text-[10px] text-slate-500 mt-1">Confección mype, 2 tiendas, sin tiempo para ERPs complejos.</p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-tinkuy-sand border border-slate-200 relative group">
+                <span class="text-[9px] font-bold uppercase text-tinkuy-forest block mb-1">Paso 2 · Cuaderno</span>
+                <strong class="text-slate-800 text-xs block">7 Campos Mínimos</strong>
+                <p class="text-[10px] text-slate-500 mt-1">Fecha, Prenda, Talla, Color, Costo, Precio y Saldo diario.</p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-tinkuy-sand border border-slate-200 relative group">
+                <span class="text-[9px] font-bold uppercase text-amber-700 block mb-1">Paso 3 · IA Gobernada</span>
+                <strong class="text-slate-800 text-xs block">OCR + Normalización</strong>
+                <p class="text-[10px] text-slate-500 mt-1">Traduce jerga informal a catálogo y audita calidad de datos.</p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-tinkuy-sand border border-slate-200 relative group">
+                <span class="text-[9px] font-bold uppercase text-emerald-700 block mb-1">Paso 4 · Accesibilidad</span>
+                <strong class="text-slate-800 text-xs block">Semáforo del Dinero</strong>
+                <p class="text-[10px] text-slate-500 mt-1">Rojo = Capital congelado, Verde = Estrella. Cero tecnicismos.</p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-gradient-to-br from-tinkuy-coral to-tinkuy-coralHover text-white relative group shadow-soft">
+                <span class="text-[9px] font-bold uppercase text-white/80 block mb-1">Paso 5 · Acción</span>
+                <strong class="text-white text-xs block">Ejecuta la Solución</strong>
+                <p class="text-[10px] text-white/90 mt-1">Afiche WhatsApp de liquidación + Orden de compra al taller en 1 clic.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BLOQUE 2: EL CUADERNO AL DETALLE: QUÉ DATOS Y CÓMO SE PROCESAN -->
+        <!-- ========================================================================= -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-card border border-slate-100 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold text-xs">2</span>
+                <h3 class="font-serif font-bold text-base sm:text-lg text-tinkuy-forest">
+                  El Cuaderno al Detalle: Qué Datos Obtener y Cómo los Procesa la IA
+                </h3>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Resolviendo el problema común donde todos los grupos pasaron de frente a la app sin explicar la captura de datos.
+              </p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300 self-start sm:self-auto">
+              Gobernanza de Datos
+            </span>
+          </div>
+
+          <!-- Simulador Visual del Cuaderno de la Vendedora Karina -->
+          <div>
+            <h4 class="font-bold text-xs sm:text-sm text-slate-800 mb-2 flex items-center gap-1.5">
+              <i data-lucide="book-open" class="w-4 h-4 text-amber-700"></i>
+              Simulación de la Hoja Física de la Vendedora (Galería Guisado #104)
+            </h4>
+            
+            <div class="rounded-3xl p-4 sm:p-5 bg-[#faf6ee] border-2 border-dashed border-amber-300 relative shadow-inner overflow-x-auto">
+              <div class="min-w-[650px] font-mono text-xs">
+                <div class="flex justify-between items-center pb-2 border-b border-amber-300 text-amber-900 text-[11px] font-bold">
+                  <span>CUADERNO DE VENTAS Y SALDOS — TIENDA GUISADO 104</span>
+                  <span>FECHA: 04/09/2026</span>
+                </div>
+                
+                <table class="w-full mt-2 text-left text-slate-800">
+                  <thead>
+                    <tr class="text-[10px] text-amber-950 uppercase border-b border-amber-200">
+                      <th class="py-1">Fecha</th>
+                      <th class="py-1">Prenda / Modelo</th>
+                      <th class="py-1">Talla</th>
+                      <th class="py-1">Color / Tela</th>
+                      <th class="py-1 text-right">Costo (Cu)</th>
+                      <th class="py-1 text-right">P. Venta (Pv)</th>
+                      <th class="py-1 text-right">Entradas</th>
+                      <th class="py-1 text-right">Saldo</th>
+                      <th class="py-1 text-center">Estado IA</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-amber-200/60 text-[11px]">
+                    <tr class="hover:bg-amber-100/50">
+                      <td class="py-2 text-slate-600">04/09</td>
+                      <td class="py-2 font-bold text-tinkuy-forest">Polo Oversize cuello redondo</td>
+                      <td class="py-2"><span class="px-1.5 py-0.5 rounded bg-white border border-amber-200 font-bold">M</span></td>
+                      <td class="py-2">Negro / Jersey 24/1</td>
+                      <td class="py-2 text-right">S/ 12.00</td>
+                      <td class="py-2 text-right font-bold">S/ 25.00</td>
+                      <td class="py-2 text-right">60</td>
+                      <td class="py-2 text-right font-bold text-emerald-700">3</td>
+                      <td class="py-2 text-center"><span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-bold">🟢 Estrella</span></td>
+                    </tr>
+                    <tr class="hover:bg-amber-100/50">
+                      <td class="py-2 text-slate-600">18/07</td>
+                      <td class="py-2 font-bold text-tinkuy-forest">Vestido Camisero Lino</td>
+                      <td class="py-2"><span class="px-1.5 py-0.5 rounded bg-white border border-amber-200 font-bold">XL</span></td>
+                      <td class="py-2">Palo Rosa / Lino</td>
+                      <td class="py-2 text-right">S/ 22.00</td>
+                      <td class="py-2 text-right font-bold">S/ 45.00</td>
+                      <td class="py-2 text-right">50</td>
+                      <td class="py-2 text-right font-bold text-red-600">48</td>
+                      <td class="py-2 text-center"><span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-bold">🔴 48d Parado</span></td>
+                    </tr>
+                    <tr class="hover:bg-amber-100/50">
+                      <td class="py-2 text-slate-600">22/08</td>
+                      <td class="py-2 font-bold text-tinkuy-forest">Pantalón Cargo Drill</td>
+                      <td class="py-2"><span class="px-1.5 py-0.5 rounded bg-white border border-amber-200 font-bold">28</span></td>
+                      <td class="py-2">Beige / Drill pesado</td>
+                      <td class="py-2 text-right">S/ 28.00</td>
+                      <td class="py-2 text-right font-bold">S/ 55.00</td>
+                      <td class="py-2 text-right">40</td>
+                      <td class="py-2 text-right font-bold text-amber-700">15</td>
+                      <td class="py-2 text-center"><span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-bold">🟡 Normal</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Matriz de los 7 Campos: Por Qué la IA los Necesita -->
+          <div>
+            <h4 class="font-bold text-xs sm:text-sm text-slate-800 mb-2">
+              Matriz de Gobernanza: Los 7 Campos Mínimos y su Propósito Analítico
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-tinkuy-forest">1. Fecha de Registro</strong>
+                  <span class="text-[10px] font-bold text-tinkuy-coral">Insumo Clave de Tiempo</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                  <strong>Por qué es vital:</strong> Permite a la IA calcular los <em>Días de Inmovilización</em> restando la fecha actual. Si supera 45 días, detona automáticamente la Alerta Roja de capital congelado.
+                </p>
+              </div>
+
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-tinkuy-forest">2. Producto y Modelo</strong>
+                  <span class="text-[10px] font-bold text-tinkuy-coral">Clasificador Base</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                  <strong>Por qué es vital:</strong> Identifica el tipo de prenda (polo, vestido, short) y su estilo para asociarlo al catálogo formal y predecir rotación por temporada.
+                </p>
+              </div>
+
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-tinkuy-forest">3. Variantes Estandarizadas (Talla/Color/Tela)</strong>
+                  <span class="text-[10px] font-bold text-tinkuy-coral">Resolución Jurado 1</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                  <strong>Por qué es vital:</strong> No basta una foto general. Un polo negro M puede estar agotado mientras el polo palo rosa XL está estancado. La IA necesita variantes para armar combos que funcionen.
+                </p>
+              </div>
+
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-tinkuy-forest">4. Costo Unitario de Taller ($C_u$)</strong>
+                  <span class="text-[10px] font-bold text-emerald-700">Protección del Capital</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                  <strong>Por qué es vital:</strong> Sin el costo, la IA no puede calcular cuánto dinero real está en riesgo ni proteger el margen mínimo al generar combos con descuento en el Botón de Rescate.
+                </p>
+              </div>
+
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-tinkuy-forest">5. Precio de Venta al Público ($P_v$)</strong>
+                  <span class="text-[10px] font-bold text-emerald-700">Margen Unitario</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                  <strong>Por qué es vital:</strong> Permite calcular el margen comercial ($P_v - C_u$) y proyectar la liquidez neta que recuperará la emprendedora al liquidar su mercadería.
+                </p>
+              </div>
+
+              <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1">
+                <div class="flex items-center justify-between">
+                  <strong class="text-tinkuy-forest">6. Entradas y Saldo Remanente</strong>
+                  <span class="text-[10px] font-bold text-slate-700">Cálculo de Stock Vivo</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                  <strong>Por qué es vital:</strong> Saldo remanente $\times C_u =$ <strong>Capital Congelado Exacto</strong>. Entradas sirve como denominador para calcular la velocidad de rotación semanal.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cómo lo Procesa la IA y cómo lo Muestra Accesiblemente -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+            <div class="p-4 rounded-2xl bg-tinkuy-blush/30 border border-tinkuy-coral/30 space-y-2">
+              <h5 class="font-bold text-xs sm:text-sm text-tinkuy-coral flex items-center gap-1.5">
+                <i data-lucide="cpu" class="w-4 h-4"></i>
+                ¿Cómo lo Procesa la IA Internamente?
+              </h5>
+              <ol class="space-y-1.5 text-[11px] text-slate-700 list-decimal list-inside">
+                <li><strong>Visión Multimodal (Gemini Flash / Local OCR):</strong> Detecta caracteres manuscritos, precios con 'S/' y divisiones de renglón.</li>
+                <li><strong>Gobernanza Semántica:</strong> Mapea abreviaciones coloquiales de Gamarra (ej. <em>"pl ov ng L"</em> ➔ <em>"Polo Oversize / Negro / Talla L"</em>).</li>
+                <li><strong>Data Quality Score:</strong> Valida consistencia lógica ($P_v > C_u$, stock positivo). Si hay tachón, activa Human-in-the-Loop o dictado por voz.</li>
+              </ol>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200 space-y-2">
+              <h5 class="font-bold text-xs sm:text-sm text-emerald-800 flex items-center gap-1.5">
+                <i data-lucide="smile" class="w-4 h-4"></i>
+                ¿Cómo se le Muestra de Forma Accesible a Rosa?
+              </h5>
+              <ul class="space-y-1.5 text-[11px] text-slate-700 list-disc list-inside">
+                <li><strong>Cero Jerga Contable:</strong> Nada de "FIFO", "LIFO", "EBITDA" ni "desviación estándar".</li>
+                <li><strong>El Semáforo del Dinero:</strong> 🔴 <em>"Tienes S/ 480 atrapados en 48 vestidos palo rosa"</em>. 🟢 <em>"Te quedan 3 polos negros; pide confección antes del sábado"</em>.</li>
+                <li><strong>Acción Ejecutable en 1 Clic:</strong> Un botón que crea el afiche de liquidación o redacta el pedido de compra al taller por WhatsApp.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BLOQUE 3: LA VISIÓN MÁS ALLÁ DE LA IA & EL FOSO DE DATOS PROPIOS -->
+        <!-- ========================================================================= -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-card border border-slate-100 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-xl bg-purple-100 text-purple-900 flex items-center justify-center font-bold text-xs">3</span>
+                <h3 class="font-serif font-bold text-base sm:text-lg text-tinkuy-forest">
+                  La Visión Más Allá de la IA & El Foso de Datos Propios
+                </h3>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Trascendiendo los límites tecnológicos actuales hacia la visión de mercado (Feedback Directo Jurado 3).
+              </p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200 self-start sm:self-auto">
+              Jurado 3
+            </span>
+          </div>
+
+          <!-- Trascendiendo la IA actual hacia la Visión de Mercado -->
+          <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-200 text-xs text-purple-950 space-y-2">
+            <h4 class="font-bold text-sm text-purple-900 flex items-center gap-1.5">
+              <i data-lucide="eye" class="w-4 h-4 text-purple-700"></i>
+              No Limitarnos a lo que Sabemos que Puede Hacer la IA Hoy
+            </h4>
+            <p class="leading-relaxed text-[11px] text-purple-900/90">
+              El Jurado 3 enfatizó que no debemos encasillar la innovación en las limitaciones de los LLMs actuales ni limitarnos a hacer un chatbot consultivo. Aunque hoy no dominemos cada detalle técnico futuro, la propuesta de valor reside en la <strong>visión de mercado</strong> y en la <strong>supervivencia del producto en el tiempo</strong>:
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+              <div class="p-2.5 rounded-xl bg-white border border-purple-200">
+                <strong class="text-purple-800 text-[11px] block">1. Avatares Inteligentes:</strong>
+                <p class="text-[10px] text-slate-600 mt-0.5">
+                  Avatares visuales y de voz en español y quechua que entrenan a vendedoras temporales en el mostrador para registrar ventas y ofrecer combos.
+                </p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white border border-purple-200">
+                <strong class="text-purple-800 text-[11px] block">2. Hardware de Mostrador POS:</strong>
+                <p class="text-[10px] text-slate-600 mt-0.5">
+                  Cámaras cenitales de bajo costo fijadas sobre el mostrador de despacho que capturan el cuaderno al pasar la página, sin tocar el teléfono.
+                </p>
+              </div>
+              <div class="p-2.5 rounded-xl bg-white border border-purple-200">
+                <strong class="text-purple-800 text-[11px] block">3. Red Predictiva Textil:</strong>
+                <p class="text-[10px] text-slate-600 mt-0.5">
+                  Modelos de anticipación de demanda que le avisan a Rosa qué telas y cortes confeccionar 3 semanas antes del inicio de la campaña.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- El Foso Defensivo en Datos Propios (Data Moat) -->
+          <div class="p-5 rounded-2xl bg-gradient-to-br from-tinkuy-forest to-tinkuy-emerald text-white space-y-3 shadow-soft">
+            <div class="flex items-center gap-2">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-tinkuy-gold"></i>
+              <h4 class="font-serif font-bold text-sm sm:text-base text-white">
+                El Foso Competitivo: ¿Por Qué la IA es un Commodity y los Datos Propios son el Negocio?
+              </h4>
+            </div>
+            <p class="text-xs text-white/90 leading-relaxed">
+              Cualquier empresa tecnológica grande o competidor recién llegado puede conectarse a las APIs de OpenAI, Google Gemini o Claude. <strong>La IA pura no es una ventaja sostenible</strong>.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs pt-1">
+              <div class="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+                <strong class="text-tinkuy-gold block mb-1">Lo que los Modelos Públicos NO Tienen:</strong>
+                <p class="text-[11px] text-white/80">
+                  Ninguna Big Tech tiene los datos de rotación real, precios de corte de confección, saldos en anaquel ni velocidad de venta de las galerías de Gamarra. Esa economía es 100% ciega para los algoritmos globales.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+                <strong class="text-tinkuy-gold block mb-1">El Foso Inexpugnable de Tinkuy IA:</strong>
+                <p class="text-[11px] text-white/80">
+                  Al digitalizar el cuaderno diario, Tinkuy IA consolida el grafo de transacciones reales de la MYPE informal. Quien posee estos datos propios se convierte en el estándar de scoring crediticio y aprovisionamiento de América Latina.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- BLOQUE 4: TABLA MAESTRA DE RESPUESTAS A LOS 3 JURADOS -->
+        <!-- ========================================================================= -->
+        <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-card border border-slate-100 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-serif font-bold text-base sm:text-lg text-tinkuy-forest flex items-center gap-2">
+                <i data-lucide="clipboard-check" class="w-5 h-5 text-tinkuy-coral"></i>
+                Matriz de Cumplimiento Técnico de Retroalimentación de los Jurados
+              </h3>
+              <p class="text-xs text-slate-500">Mapeo textual de objeciones y soluciones activas en la aplicación.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-tinkuy-sand text-slate-700 font-bold uppercase text-[10px] border-b border-slate-200">
+                <tr>
+                  <th class="px-3 py-2.5">Jurado</th>
+                  <th class="px-3 py-2.5">Objeción / Feedback Textual</th>
+                  <th class="px-3 py-2.5">Solución Implementada en Tinkuy IA</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700 text-[11px]">
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-3 font-bold text-tinkuy-coral align-top whitespace-nowrap">Jurado 1</td>
+                  <td class="px-3 py-3 text-slate-600 align-top">
+                    "¿Qué información necesita capturar la foto para que la IA procese insights? Un producto tiene muchas características (talla, color, tipo, modelo); no basta con 'capturar una foto'. Se requiere gobierno de datos y campos estandarizados."
+                  </td>
+                  <td class="px-3 py-3 text-slate-800 align-top font-medium">
+                    Taxonomía de 7 campos mínimos obligatorios (<span class="font-mono text-[10px]">Product.js</span>), motor de normalización semántica (<span class="font-mono text-[10px]">OcrEngine.js</span>) y cálculo de Data Quality Score (96%).
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-3 font-bold text-emerald-800 align-top whitespace-nowrap">Jurado 2</td>
+                  <td class="px-3 py-3 text-slate-600 align-top">
+                    "Ir más allá de una IA consultiva (que solo da respuestas) hacia una IA operativa (generar órdenes de compra, conectar con proveedores). Además, multitienda en Gamarra y cálculo de Unit Economics con valor del propio tiempo."
+                  </td>
+                  <td class="px-3 py-3 text-slate-800 align-top font-medium">
+                    Soporte multitienda (Guisado, El Rey, Almacén), generador formal de Órdenes de Compra vía WhatsApp (<span class="font-mono text-[10px]">PurchaseOrder.js</span>) y simulador de Unit Economics con salario horario de la dueña (<span class="font-mono text-[10px]">EconomicsService.js</span>).
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="px-3 py-3 font-bold text-purple-800 align-top whitespace-nowrap">Jurado 3</td>
+                  <td class="px-3 py-3 text-slate-600 align-top">
+                    "No veamos una limitante solo en lo que sabemos que podría hacer la IA, tener visión de mercado más allá del detalle técnico. La clave diferencial son los datos propios frente a IAs estándar. Y acotar bien el buyer persona en hoja en blanco."
+                  </td>
+                  <td class="px-3 py-3 text-slate-800 align-top font-medium">
+                    Buyer Persona específico (Rosa Quispe en Gamarra), efecto en cadena hacia la acción resolutiva y construcción del foso de datos propios para el Tinkuy Score B2B con microcréditos de Cajas de Ahorro.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
     </div>
   </div>
 
@@ -1257,41 +1823,70 @@
     </div>
   </div>
 
-  <!-- 5. DECK MODAL -->
+  <!-- 5. DECK & JURADO MODAL -->
   <div id="deckInfoModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 modal-sheet-container">
-    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto space-y-3 sm:space-y-4 modal-sheet-box">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto space-y-4 modal-sheet-box">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-xl bg-tinkuy-forest text-white flex items-center justify-center">
-            <i data-lucide="book-open" class="w-4 h-4 text-tinkuy-gold"></i>
+          <div class="w-9 h-9 rounded-xl bg-tinkuy-forest text-white flex items-center justify-center shadow-sm">
+            <i data-lucide="compass" class="w-5 h-5 text-tinkuy-gold"></i>
           </div>
           <div>
             <h3 class="font-serif font-bold text-base sm:text-lg text-tinkuy-forest">Tinkuy IA — Pitch Deck & Jurado</h3>
-            <p class="text-[10px] sm:text-xs text-slate-500">Fundamentos y resolución técnica</p>
+            <p class="text-[10px] sm:text-xs text-slate-500">Fundamentos, Buyer Persona y Resolución Técnica</p>
           </div>
         </div>
-        <button onclick="window.tinkuyApp.closeDeckModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+        <button onclick="window.tinkuyApp.closeDeckModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
-        <div class="p-3 rounded-2xl bg-tinkuy-blush/50 border border-tinkuy-coral/20">
-          <h4 class="font-bold text-tinkuy-coral mb-0.5">Jurado 1: Gobernanza de Datos & Anti-Sesgos</h4>
-          <p>Taxonomía estandarizada (talla, color, modelo, costo, precio) con Data Quality Score (96%). Sin asumir falta de instrucción.</p>
-        </div>
-        <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-          <h4 class="font-bold text-emerald-800 mb-0.5">Jurado 2: Multitienda & IA Operativa</h4>
-          <p>Soporte multitienda en Gamarra + Consolidado. Generación formal de Órdenes de Compra a proveedores en 1 clic.</p>
-        </div>
-        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200">
-          <h4 class="font-bold text-slate-800 mb-0.5">Jurado 3: Foso en Datos Propios</h4>
-          <p>Tinkuy Score (0-1000) basado en 90 días de rotación para microcréditos con Caja Arequipa y Huancayo.</p>
+      <!-- Cita Central Jurado 3 -->
+      <div class="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 text-xs text-purple-950">
+        <div class="flex items-start gap-2">
+          <i data-lucide="quote" class="w-4 h-4 text-purple-700 shrink-0 mt-0.5"></i>
+          <div>
+            <p class="font-medium italic text-[11px]">
+              "No veamos una limitante solo en lo que sabemos que podría hacer la IA, podemos tener una visión más allá, aunque no dominemos detalle técnico la idea estaría en la visión... Abstraerse de la pregunta 'qué puedo abarcar con la tecnología': la solución no tiene que ser solo IA. La clave diferencial son los datos propios."
+            </p>
+            <p class="text-[10px] font-bold text-purple-800 mt-0.5">— Jurado 3</p>
+          </div>
         </div>
       </div>
 
-      <div class="pt-2 text-right">
-        <button onclick="window.tinkuyApp.closeDeckModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tinkuy-forest text-white font-bold text-xs">
+      <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+        <div class="p-3 rounded-2xl bg-tinkuy-blush/60 border border-tinkuy-coral/30">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="font-bold text-tinkuy-coral">Jurado 1: Gobernanza de Datos & Anti-Sesgos</h4>
+            <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white text-tinkuy-coral">7 Campos Mínimos</span>
+          </div>
+          <p class="text-[11px]">Taxonomía formal (prenda, talla, color, tela, costo taller, precio venta, saldo). Data Quality Score (96%). Sin asumir falta de instrucción: ser MYPE depende de ventas, no de escolaridad.</p>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="font-bold text-emerald-800">Jurado 2: Multitienda & IA Operativa</h4>
+            <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white text-emerald-800">Acción Resolutiva</span>
+          </div>
+          <p class="text-[11px]">Multitienda en Gamarra (Guisado, El Rey, Almacén). IA operativa que genera Órdenes de Compra formales a talleres por WhatsApp en 1 clic y calcula el valor del tiempo de la dueña.</p>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center justify-between mb-1">
+            <h4 class="font-bold text-slate-800">Jurado 3: Foso en Datos Propios & Buyer Persona</h4>
+            <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-white text-slate-800">Data Moat</span>
+          </div>
+          <p class="text-[11px]">Buyer persona validado en hoja en blanco (Rosa Quispe en Gamarra). La IA es un commodity público; el verdadero foso competitivo son los datos propietarios de microcomercios informales.</p>
+        </div>
+      </div>
+
+      <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100">
+        <button onclick="window.tinkuyApp.closeDeckModal(); window.tinkuyApp.switchTab('juradoVision');" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-tinkuy-blush text-tinkuy-coral font-bold text-xs hover:bg-tinkuy-coral hover:text-white transition flex items-center justify-center gap-1.5 border border-tinkuy-coral/30">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          <span>Abrir Panel Completo de Visión Jurado</span>
+        </button>
+
+        <button onclick="window.tinkuyApp.closeDeckModal()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tinkuy-forest text-white font-bold text-xs hover:bg-tinkuy-forestDark transition">
           Entendido, volver a la App
         </button>
       </div>
