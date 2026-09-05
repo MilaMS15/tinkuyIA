@@ -125,3 +125,40 @@ export const SEED_PURCHASE_ORDERS = [
     ]
   })
 ];
+
+export const SEED_SCANNED_RECEIPTS = [
+  {
+    id: 'rec_001',
+    documentNumber: 'B001-0004928',
+    title: 'Boleta de Compra N° B001-0004928',
+    provider: 'Textilera San Jacinto S.A.C.',
+    date: '05/09/2026, 08:30',
+    type: 'boleta',
+    storeId: 'guisado',
+    totalAmount: 936.00,
+    itemsCount: 2,
+    source: 'Gemini 2.5 Flash',
+    items: [
+      { name: 'Polo Oversize Algodón Jersey 24/1', qty: 36, costUnit: 18.00, priceSale: 38.00, total: 648.00 },
+      { name: 'Top Rib Básico Spun Colores', qty: 24, costUnit: 12.00, priceSale: 25.00, total: 288.00 }
+    ]
+  },
+  {
+    id: 'rec_002',
+    documentNumber: 'Cierre Diario #104',
+    title: 'Cuaderno de Ventas Diarias',
+    provider: 'Galería Guisado Puesto 104',
+    date: '04/09/2026, 20:15',
+    type: 'cuaderno',
+    storeId: 'guisado',
+    totalAmount: 269.00,
+    itemsCount: 3,
+    source: 'Motor Local Offline',
+    items: [
+      { name: 'Polo Oversize Blanco (M, L)', qty: 3, costUnit: 18.00, priceSale: 38.00, total: 114.00 },
+      { name: 'Blusa Seda Satín Palo Rosa', qty: 1, costUnit: 25.00, priceSale: 45.00, total: 45.00 },
+      { name: 'Top Rib Básico Negro/Rosa', qty: 2, costUnit: 12.00, priceSale: 25.00, total: 50.00 }
+    ]
+  }
+];
+

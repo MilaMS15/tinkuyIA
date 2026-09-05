@@ -1,6 +1,6 @@
 import { Product } from '../models/Product.js';
 import { PurchaseOrder } from '../models/PurchaseOrder.js';
-import { SEED_PRODUCTS, SEED_PURCHASE_ORDERS } from '../data/mockData.js';
+import { SEED_PRODUCTS, SEED_PURCHASE_ORDERS, SEED_SCANNED_RECEIPTS } from '../data/mockData.js';
 
 const STORAGE_KEY = 'tinkuy_ia_store_v2';
 const API_KEY_STORAGE = 'tinkuy_gemini_api_key';
@@ -16,6 +16,9 @@ export class StorageService {
       return {
         products: (parsed.products || []).map(p => new Product(p)),
         purchaseOrders: (parsed.purchaseOrders || []).map(o => new PurchaseOrder(o)),
+        scannedReceipts: (parsed.scannedReceipts && parsed.scannedReceipts.length > 0)
+          ? parsed.scannedReceipts
+          : SEED_SCANNED_RECEIPTS,
         streakDays: parsed.streakDays || 28,
         bankConsent: parsed.bankConsent !== undefined ? parsed.bankConsent : true,
         economics: parsed.economics || {
@@ -66,6 +69,7 @@ export class StorageService {
     const defaults = {
       products: SEED_PRODUCTS,
       purchaseOrders: SEED_PURCHASE_ORDERS,
+      scannedReceipts: SEED_SCANNED_RECEIPTS,
       streakDays: 28,
       bankConsent: true,
       economics: {

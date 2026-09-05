@@ -224,6 +224,10 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
         return {
           success: true,
           source: model,
+          documentType: parsed.documentType || 'boleta',
+          documentNumber: parsed.documentNumber || `B001-${Math.floor(1000 + Math.random() * 9000)}`,
+          providerOrIssuer: parsed.providerOrIssuer || 'Proveedor Gamarra',
+          totalAmount: parsed.totalAmount || 0,
           dataQualityScore: parsed.dataQualityScore || 96,
           items: (parsed.items || []).map(item => new Product({
             ...item,
@@ -248,7 +252,16 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
         let dataQualityScore = 96;
         let doubtItem = null;
 
+        let documentType = 'boleta';
+        let documentNumber = 'B001-0004928';
+        let providerOrIssuer = 'Textilera San Jacinto S.A.C.';
+        let totalAmount = 936.00;
+
         if (presetType === 'boleta_proveedor') {
+          documentType = 'boleta';
+          documentNumber = 'B001-0004928';
+          providerOrIssuer = 'Textilera San Jacinto S.A.C.';
+          totalAmount = 936.00;
           extractedItems = [
             new Product({
               name: 'Polo Oversize Algodón Jersey 24/1',
@@ -276,6 +289,10 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
             })
           ];
         } else if (presetType === 'abarrotes_granel') {
+          documentType = 'boleta';
+          documentNumber = 'B002-001284';
+          providerOrIssuer = 'Granos y Abarrotes del Centro E.I.R.L.';
+          totalAmount = 402.50;
           extractedItems = [
             new Product({
               name: 'Quinua Blanca Lavada x Kilo',
@@ -291,6 +308,10 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
             })
           ];
         } else {
+          documentType = 'cuaderno';
+          documentNumber = 'Cierre Diario #' + Math.floor(100 + Math.random() * 900);
+          providerOrIssuer = 'Galería Guisado Puesto 104';
+          totalAmount = 269.00;
           extractedItems = [
             new Product({
               name: 'Polo Oversize Algodón Jersey 24/1',
@@ -327,6 +348,10 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
         resolve({
           success: true,
           source: 'local-multimodal-engine',
+          documentType,
+          documentNumber,
+          providerOrIssuer,
+          totalAmount,
           dataQualityScore,
           items: extractedItems,
           doubtItem
