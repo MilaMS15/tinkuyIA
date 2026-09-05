@@ -3,7 +3,7 @@ import { StorageService } from './StorageService.js';
 
 /**
  * Motor de Visión Computacional & Gobierno de Datos (Pitch Deck Pág 6 + Jurado 1 y 3)
- * Soporta llamada directa en local a la API gratuita de Google Gemini (Gemini 1.5 Flash)
+ * Soporta llamada directa en local a la API gratuita de Google Gemini (Gemini 2.5 Flash / 2.0 Flash)
  * con motor de contingencia local inteligente para funcionamiento 100% offline.
  */
 export class OcrEngine {
@@ -104,7 +104,7 @@ export class OcrEngine {
 
   /**
    * Procesa la imagen del cuaderno o boleta:
-   * 1. Si el usuario configuró una API Key de Gemini en localStorage, la envía a Google Gemini 1.5 Flash
+   * 1. Si el usuario configuró una API Key de Gemini en localStorage, la envía a Google Gemini (2.5 / 2.0 Flash)
    * 2. Si no hay API key o hay error de red, utiliza el motor local garantizado
    */
   static async processImage(imageDataUrl, presetType = 'gamarra_ventas') {
@@ -112,7 +112,7 @@ export class OcrEngine {
 
     if (apiKey && apiKey.length > 10) {
       try {
-        console.log('Procesando imagen con Gemini 1.5 Flash Vision...');
+        console.log('Procesando imagen con las últimas versiones de Gemini (2.5 / 2.0 Flash)...');
         const geminiResult = await this.callGeminiVision(imageDataUrl, apiKey);
         if (geminiResult && geminiResult.items && geminiResult.items.length > 0) {
           return geminiResult;
@@ -165,52 +165,79 @@ Devuelve EXCLUSIVAMENTE un objeto JSON válido con esta estructura (sin backtick
   "doubtItem": null
 }`;
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const preferredModel = StorageService.getGeminiModel() || 'gemini-2.5-flash';
+    // Últimas versiones de Gemini (2.5 Flash, 2.0 Flash, 2.5 Pro)
+    const modelsToTry = [
+      preferredModel,
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.5-pro'
+    ];
+    const uniqueModels = [...new Set(modelsToTry)];
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
+    let lastError = null;
+
+    for (const model of uniqueModels) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
               {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: base64Data
-                }
+                parts: [
+                  { text: prompt },
+                  {
+                    inline_data: {
+                      mime_type: mimeType,
+                      data: base64Data
+                    }
+                  }
+                ]
               }
-            ]
-          }
-        ],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          temperature: 0.2
-        }
-      })
-    });
+            ],
+            generationConfig: {
+              response_mime_type: 'application/json',
+              temperature: 0.1
+            }
+          })
+        });
 
-    if (!response.ok) {
-      throw new Error(`Gemini API respondió con código: ${response.status}`);
+        if (!response.ok) {
+          const errText = await response.text();
+          console.warn(`Intento con ${model} falló (${response.status}):`, errText);
+          lastError = new Error(`Error en ${model}: código ${response.status}`);
+          continue;
+        }
+
+        const data = await response.json();
+        const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!candidateText) {
+          lastError = new Error(`Respuesta vacía de ${model}`);
+          continue;
+        }
+
+        const parsed = JSON.parse(candidateText.trim());
+
+        return {
+          success: true,
+          source: model,
+          dataQualityScore: parsed.dataQualityScore || 96,
+          items: (parsed.items || []).map(item => new Product({
+            ...item,
+            dataQualityScore: parsed.dataQualityScore || 96
+          })),
+          doubtItem: parsed.doubtItem || null
+        };
+      } catch (err) {
+        console.warn(`Excepción con ${model}:`, err);
+        lastError = err;
+      }
     }
 
-    const data = await response.json();
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) throw new Error('Respuesta vacía de Gemini');
-
-    const parsed = JSON.parse(candidateText.trim());
-
-    return {
-      success: true,
-      source: 'gemini-1.5-flash',
-      dataQualityScore: parsed.dataQualityScore || 95,
-      items: (parsed.items || []).map(item => new Product({
-        ...item,
-        dataQualityScore: parsed.dataQualityScore || 95
-      })),
-      doubtItem: parsed.doubtItem || null
-    };
+    throw lastError || new Error('No se pudo procesar la imagen con las últimas versiones de Gemini');
   }
 
   // Motor local offline

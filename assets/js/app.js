@@ -321,9 +321,10 @@ class TinkuyAppController {
     if (previewImg) previewImg.src = imageDataUrl;
     
     const hasKey = StorageService.getGeminiApiKey().length > 10;
+    const selectedModel = StorageService.getGeminiModel() || 'gemini-2.5-flash';
     if (badge) {
       badge.textContent = hasKey
-        ? 'Analizando con Gemini 1.5 Flash Vision...'
+        ? `Analizando con ${selectedModel}...`
         : 'Analizando con Visión Local y Gobierno de Datos...';
     }
 
@@ -331,8 +332,8 @@ class TinkuyAppController {
       const result = await OcrEngine.processImage(imageDataUrl, label);
 
       if (badge) {
-        badge.textContent = result.source === 'gemini-1.5-flash'
-          ? 'Procesado con Gemini AI en tiempo real ✓'
+        badge.textContent = result.source && result.source.startsWith('gemini')
+          ? `Procesado con ${result.source} en tiempo real ✓`
           : 'Extracción completada con Motor Local ✓';
       }
 
@@ -441,7 +442,9 @@ class TinkuyAppController {
   openGeminiKeyModal() {
     const modal = document.getElementById('geminiKeyModal');
     const input = document.getElementById('geminiApiKeyInput');
+    const select = document.getElementById('geminiModelSelect');
     if (input) input.value = StorageService.getGeminiApiKey();
+    if (select) select.value = StorageService.getGeminiModel();
     if (modal) modal.classList.remove('hidden');
   }
 
@@ -452,14 +455,17 @@ class TinkuyAppController {
 
   saveGeminiApiKey() {
     const input = document.getElementById('geminiApiKeyInput');
+    const select = document.getElementById('geminiModelSelect');
     const key = input ? input.value.trim() : '';
+    const model = select ? select.value : 'gemini-2.5-flash';
 
     StorageService.saveGeminiApiKey(key);
+    StorageService.saveGeminiModel(model);
     this.updateGeminiStatusBadge();
     this.closeGeminiKeyModal();
 
     if (key) {
-      this.showToast('API Key de Gemini guardada en tu LocalStorage');
+      this.showToast(`Gemini configurado: ${model}`);
     } else {
       this.showToast('Usando Motor Local Offline de Contingencia');
     }
@@ -467,16 +473,17 @@ class TinkuyAppController {
 
   updateGeminiStatusBadge() {
     const key = StorageService.getGeminiApiKey();
-    const badge = document.getElementById('geminiStatusBadge');
-    if (!badge) return;
-
-    if (key && key.length > 10) {
-      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> <span>Gemini 1.5 Activo</span>`;
-      badge.className = 'px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold flex items-center gap-1 border border-emerald-200 cursor-pointer';
-    } else {
-      badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> <span>Motor Local (Offline)</span>`;
-      badge.className = 'px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold flex items-center gap-1 border border-amber-200 cursor-pointer';
-    }
+    const model = StorageService.getGeminiModel() || 'gemini-2.5-flash';
+    const modelShort = model.includes('2.5') ? '2.5' : '2.0';
+    document.querySelectorAll('.gemini-status-badge').forEach(badge => {
+      if (key && key.length > 10) {
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span> <span class="hidden sm:inline">Gemini ${modelShort} Activo</span><span class="sm:hidden">Gemini ${modelShort}</span>`;
+        badge.className = 'gemini-status-badge px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] sm:text-xs font-bold flex items-center gap-1 border border-emerald-200 cursor-pointer';
+      } else {
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span> <span class="hidden sm:inline">Motor Local (Offline)</span><span class="sm:hidden">Local</span>`;
+        badge.className = 'gemini-status-badge px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 text-[10px] sm:text-xs font-bold flex items-center gap-1 border border-amber-200 cursor-pointer';
+      }
+    });
   }
 
   // --- RENDER TABLE & MOBILE CARDS ---

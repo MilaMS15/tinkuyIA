@@ -52,6 +52,16 @@ export class StorageService {
     }
   }
 
+  static getGeminiModel() {
+    return localStorage.getItem('tinkuy_gemini_model') || 'gemini-2.5-flash';
+  }
+
+  static saveGeminiModel(model) {
+    if (model) {
+      localStorage.setItem('tinkuy_gemini_model', model.trim());
+    }
+  }
+
   static initializeDefaults() {
     const defaults = {
       products: SEED_PRODUCTS,
