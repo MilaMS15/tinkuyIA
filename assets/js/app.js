@@ -25,6 +25,11 @@ class TinkuyAppController {
 
     // Real Speech Recognition reference
     this.speechRecognizer = null;
+
+    // Review Modal & Friendly Voice Assistant state
+    this.pendingScanData = null;
+    this.reviewSpeechRecognizer = null;
+    this.isListeningReviewVoice = false;
   }
 
   init() {
@@ -389,78 +394,520 @@ class TinkuyAppController {
       const provider = result.providerOrIssuer || (isBoleta ? 'Textilera San Jacinto S.A.C.' : 'Galería Guisado #104');
       const docTitle = isBoleta ? `Boleta de Compra N° ${docNum}` : `Cuaderno de Cierre Diario ${docNum}`;
       
-      const totalSum = result.items.reduce((acc, it) => acc + ((Number(it.stock) || 1) * (Number(it.costUnit) || Number(it.priceSale) || 15)), 0);
-
-      const receiptRecord = {
-        id: 'rec_' + Date.now(),
-        documentNumber: docNum,
-        title: docTitle,
-        provider: provider,
-        date: new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }),
-        type: isBoleta ? 'boleta' : 'cuaderno',
-        storeId: this.currentStoreId === 'consolidated' ? 'guisado' : this.currentStoreId,
-        totalAmount: result.totalAmount || totalSum,
-        itemsCount: result.items.length,
+      this.pendingScanData = {
+        imageDataUrl: (imageDataUrl && imageDataUrl.length < 500000) ? imageDataUrl : null,
+        label,
         source: result.source && result.source.startsWith('gemini') ? result.source : 'Motor Local Offline',
-        items: result.items.map(it => ({
-          name: it.name,
-          qty: Number(it.stock) || 1,
-          costUnit: Number(it.costUnit) || 18.0,
-          priceSale: Number(it.priceSale) || 38.0,
-          total: (Number(it.stock) || 1) * (Number(it.costUnit) || 18.0)
-        })),
-        imageDataUrl: (imageDataUrl && imageDataUrl.length < 120000) ? imageDataUrl : null
+        documentType: isBoleta ? 'boleta' : 'cuaderno',
+        documentNumber: docNum,
+        providerOrIssuer: provider,
+        title: docTitle,
+        date: new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }),
+        items: (result.items || []).map((it, idx) => ({
+          id: it.id || ('scan_item_' + Date.now() + '_' + idx),
+          name: it.name || 'Producto',
+          category: it.category || 'textil',
+          stock: Number(it.stock) || 1,
+          costUnit: Number(it.costUnit) || (Number(it.priceSale) ? Number((it.priceSale * 0.55).toFixed(2)) : 18.0),
+          priceSale: Number(it.priceSale) || (Number(it.costUnit) ? Number((it.costUnit * 1.8).toFixed(2)) : 38.0)
+        }))
       };
 
-      if (!this.state.scannedReceipts) {
-        this.state.scannedReceipts = [];
-      }
-      this.state.scannedReceipts.unshift(receiptRecord);
+      // Abre la ventana/modal de revisión con voz amigable para verificar antes de guardar
+      this.openBoletaReviewModal();
 
-      // Guardar productos o sumar stock en localStorage
-      let itemsAdded = 0;
-      let itemsUpdated = 0;
-
-      result.items.forEach(newItem => {
-        newItem.storeId = this.currentStoreId === 'consolidated' ? 'guisado' : this.currentStoreId;
-        const existing = this.state.products.find(p => p.name.toLowerCase().trim() === newItem.name.toLowerCase().trim() && (p.storeId === newItem.storeId || this.currentStoreId === 'consolidated'));
-        
-        if (existing) {
-          existing.stock += (Number(newItem.stock) || 1);
-          if (newItem.costUnit) existing.costUnit = newItem.costUnit;
-          if (newItem.priceSale) existing.priceSale = newItem.priceSale;
-          existing.lastSource = `Boleta ${docNum}`;
-          existing.isRecentlyUpdated = true;
-          itemsUpdated++;
-        } else {
-          newItem.lastSource = `Boleta ${docNum}`;
-          newItem.isRecentlyUpdated = true;
-          this.state.products.unshift(newItem);
-          itemsAdded++;
-        }
-      });
-
-      // Guardar TODO en LocalStorage y re-renderizar todas las vistas
-      this.save();
-
-      // Mostrar alerta de éxito
-      const alertEl = document.getElementById('scanSuccessAlert');
-      const alertMsg = document.getElementById('scanSuccessAlertMsg');
-      if (alertEl && alertMsg) {
-        alertMsg.textContent = `${receiptRecord.title} guardada en LocalStorage. Total: S/ ${receiptRecord.totalAmount.toFixed(2)} (${itemsAdded} agregados, ${itemsUpdated} actualizados).`;
-        alertEl.classList.remove('hidden');
-      }
-
-      this.showToast(`¡${receiptRecord.title} guardada en LocalStorage!`);
-
-      // Scroll suave a la sección visible de Boletas Guardadas
-      const receiptsSection = document.getElementById('scannedReceiptsSection');
-      if (receiptsSection) {
-        receiptsSection.scrollIntoView({ behavior: 'smooth' });
-      }
     } catch (e) {
       console.error('Error procesando imagen:', e);
       this.showToast('Error procesando foto, intente nuevamente');
+    }
+  }
+
+  // =========================================================================
+  // REVISIÓN Y CONFIRMACIÓN DE BOLETA / ASISTENTE DE VOZ AMIGABLE CON GEMINI
+  // =========================================================================
+  openBoletaReviewModal() {
+    if (!this.pendingScanData) return;
+    const modal = document.getElementById('boletaReviewModal');
+    if (!modal) return;
+
+    const img = document.getElementById('reviewModalImg');
+    const badge = document.getElementById('reviewModalAiBadge');
+    const typePill = document.getElementById('reviewModalTypePill');
+    const docTitle = document.getElementById('reviewModalDocTitle');
+    const provider = document.getElementById('reviewModalProvider');
+    const dateEl = document.getElementById('reviewModalDate');
+    const bubble = document.getElementById('reviewVoiceBubble');
+
+    if (img) img.src = this.pendingScanData.imageDataUrl || '';
+    if (badge) {
+      badge.textContent = (this.pendingScanData.source && this.pendingScanData.source.startsWith('gemini'))
+        ? `${this.pendingScanData.source} ✓`
+        : 'Motor Local Offline';
+    }
+    if (typePill) {
+      typePill.textContent = this.pendingScanData.documentType === 'boleta'
+        ? '🧾 Boleta Electrónica'
+        : '📓 Cuaderno Diario';
+    }
+    if (docTitle) docTitle.textContent = this.pendingScanData.title;
+    if (provider) provider.textContent = this.pendingScanData.providerOrIssuer;
+    if (dateEl) dateEl.textContent = this.pendingScanData.date;
+
+    const greeting = `¡Hola caserita! Ya analicé tu documento y extraje ${this.pendingScanData.items.length} productos. ¿Coinciden las cantidades y precios con tu comprobante? Si deseas corregir algo, solo háblame con el micrófono o escríbeme abajo. ¿Está todo conforme para guardarlo?`;
+    if (bubble) {
+      bubble.textContent = `"${greeting}"`;
+    }
+
+    this.renderReviewModalItems();
+    modal.classList.remove('hidden');
+
+    // Saludo hablado amigable con Web Speech Synthesis
+    this.speakAssistantFriendly(greeting);
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  closeBoletaReviewModal() {
+    const modal = document.getElementById('boletaReviewModal');
+    if (modal) modal.classList.add('hidden');
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (this.isListeningReviewVoice && this.reviewSpeechRecognizer) {
+      try {
+        this.reviewSpeechRecognizer.stop();
+      } catch (e) {}
+      this.isListeningReviewVoice = false;
+    }
+    this.pendingScanData = null;
+  }
+
+  renderReviewModalItems() {
+    if (!this.pendingScanData || !this.pendingScanData.items) return;
+    const tbody = document.getElementById('reviewModalItemsTbody');
+    if (!tbody) return;
+
+    const items = this.pendingScanData.items;
+    let totalSum = 0;
+
+    tbody.innerHTML = items.map((it, idx) => {
+      const qty = Number(it.stock) || 1;
+      const cost = Number(it.costUnit) || 0;
+      const sale = Number(it.priceSale) || 0;
+      const rowTotal = qty * cost;
+      totalSum += rowTotal;
+
+      return `
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="px-2.5 py-1.5">
+            <input type="text" value="${it.name}" onchange="window.tinkuyApp.updatePendingItem(${idx}, 'name', this.value)" class="w-full font-semibold text-slate-800 bg-transparent hover:bg-slate-100/60 focus:bg-white border border-transparent focus:border-amber-300 rounded px-1.5 py-1 text-xs outline-none" />
+          </td>
+          <td class="px-2 py-1.5 text-center">
+            <input type="number" min="1" step="1" value="${qty}" onchange="window.tinkuyApp.updatePendingItem(${idx}, 'stock', this.value)" class="w-16 text-center font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-1 py-1 text-xs focus:ring-1 focus:ring-amber-400 focus:outline-none" />
+          </td>
+          <td class="px-2 py-1.5 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <span class="text-[10px] text-slate-400">S/</span>
+              <input type="number" min="0" step="0.5" value="${cost.toFixed(2)}" onchange="window.tinkuyApp.updatePendingItem(${idx}, 'costUnit', this.value)" class="w-20 text-right font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-lg px-1 py-1 text-xs focus:ring-1 focus:ring-amber-400 focus:outline-none" />
+            </div>
+          </td>
+          <td class="px-2 py-1.5 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <span class="text-[10px] text-slate-400">S/</span>
+              <input type="number" min="0" step="0.5" value="${sale.toFixed(2)}" onchange="window.tinkuyApp.updatePendingItem(${idx}, 'priceSale', this.value)" class="w-20 text-right font-bold text-tinkuy-forest bg-emerald-50/50 border border-emerald-200 rounded-lg px-1 py-1 text-xs focus:ring-1 focus:ring-amber-400 focus:outline-none" />
+            </div>
+          </td>
+          <td class="px-2 py-1.5 text-right font-bold text-slate-800 text-xs whitespace-nowrap">
+            S/ ${rowTotal.toFixed(2)}
+          </td>
+          <td class="px-1.5 py-1.5 text-center">
+            <button onclick="window.tinkuyApp.removePendingItem(${idx})" class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Eliminar fila">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    const totalHeader = document.getElementById('reviewModalTotalHeader');
+    const totalBottom = document.getElementById('reviewModalTotalBottom');
+    if (totalHeader) totalHeader.textContent = `S/ ${totalSum.toFixed(2)}`;
+    if (totalBottom) totalBottom.textContent = `S/ ${totalSum.toFixed(2)}`;
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  updatePendingItem(index, field, value) {
+    if (!this.pendingScanData || !this.pendingScanData.items[index]) return;
+    if (field === 'stock' || field === 'costUnit' || field === 'priceSale') {
+      this.pendingScanData.items[index][field] = parseFloat(value) || 0;
+    } else {
+      this.pendingScanData.items[index][field] = value;
+    }
+    this.renderReviewModalItems();
+  }
+
+  removePendingItem(index) {
+    if (!this.pendingScanData || !this.pendingScanData.items) return;
+    this.pendingScanData.items.splice(index, 1);
+    this.renderReviewModalItems();
+  }
+
+  addEmptyRowToReviewModal() {
+    if (!this.pendingScanData) return;
+    if (!this.pendingScanData.items) this.pendingScanData.items = [];
+    this.pendingScanData.items.push({
+      id: 'scan_item_' + Date.now(),
+      name: 'Nuevo Producto',
+      category: 'textil',
+      stock: 12,
+      costUnit: 15.0,
+      priceSale: 35.0
+    });
+    this.renderReviewModalItems();
+  }
+
+  toggleReviewVoiceMic() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const statusEl = document.getElementById('reviewVoiceListeningStatus');
+    const statusText = document.getElementById('reviewVoiceListeningText');
+    const micBtn = document.getElementById('reviewVoiceMicBtn');
+    const micBtnLabel = document.getElementById('reviewVoiceMicBtnLabel');
+
+    if (!SpeechRec) {
+      this.showToast('Tu navegador no soporta micrófono directo. Puedes escribir la corrección.');
+      const textInput = document.getElementById('reviewVoiceTextInput');
+      if (textInput) textInput.focus();
+      return;
+    }
+
+    if (this.isListeningReviewVoice && this.reviewSpeechRecognizer) {
+      try {
+        this.reviewSpeechRecognizer.stop();
+      } catch (e) {}
+      this.isListeningReviewVoice = false;
+      if (statusEl) statusEl.classList.add('hidden');
+      if (micBtnLabel) micBtnLabel.textContent = 'Hablar al Micrófono';
+      if (micBtn) micBtn.classList.remove('bg-red-600', 'animate-pulse');
+      return;
+    }
+
+    try {
+      const recognizer = new SpeechRec();
+      recognizer.lang = 'es-PE';
+      recognizer.interimResults = false;
+      recognizer.continuous = false;
+
+      recognizer.onstart = () => {
+        this.isListeningReviewVoice = true;
+        if (statusEl) statusEl.classList.remove('hidden');
+        if (statusText) statusText.textContent = "🎙️ Escuchando... Habla claro (ej: 'el polo está a 20 soles' o 'todo bien')";
+        if (micBtnLabel) micBtnLabel.textContent = 'Detener Micrófono';
+        if (micBtn) micBtn.classList.add('bg-red-600', 'animate-pulse');
+      };
+
+      recognizer.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        this.isListeningReviewVoice = false;
+        if (statusEl) statusEl.classList.add('hidden');
+        if (micBtnLabel) micBtnLabel.textContent = 'Hablar al Micrófono';
+        if (micBtn) micBtn.classList.remove('bg-red-600', 'animate-pulse');
+
+        const bubble = document.getElementById('reviewVoiceBubble');
+        if (bubble) bubble.textContent = `Dijiste: "${transcript}". Procesando...`;
+
+        this.applyVoiceCorrection(transcript);
+      };
+
+      recognizer.onerror = (event) => {
+        this.isListeningReviewVoice = false;
+        if (statusEl) statusEl.classList.add('hidden');
+        if (micBtnLabel) micBtnLabel.textContent = 'Hablar al Micrófono';
+        if (micBtn) micBtn.classList.remove('bg-red-600', 'animate-pulse');
+        console.warn('SpeechRecognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          this.showToast('Permiso de micrófono denegado. Puedes escribir la corrección.');
+        }
+      };
+
+      recognizer.onend = () => {
+        this.isListeningReviewVoice = false;
+        if (statusEl) statusEl.classList.add('hidden');
+        if (micBtnLabel) micBtnLabel.textContent = 'Hablar al Micrófono';
+        if (micBtn) micBtn.classList.remove('bg-red-600', 'animate-pulse');
+      };
+
+      this.reviewSpeechRecognizer = recognizer;
+      recognizer.start();
+    } catch (err) {
+      console.error('Error starting SpeechRecognition:', err);
+      this.showToast('No se pudo iniciar el micrófono');
+    }
+  }
+
+  submitReviewVoiceText() {
+    const input = document.getElementById('reviewVoiceTextInput');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    this.applyVoiceCorrection(text);
+  }
+
+  async applyVoiceCorrection(userSpeech) {
+    if (!this.pendingScanData || !this.pendingScanData.items) return;
+    const text = (userSpeech || '').trim();
+    if (!text) return;
+
+    const bubble = document.getElementById('reviewVoiceBubble');
+    if (bubble) {
+      bubble.innerHTML = `<em>"Procesando tu indicación: '${text}'..."</em>`;
+    }
+
+    // 1. Detección de confirmación por voz ("todo bien", "está bien", "guárdalo", "conforme", "confirmar", "sí", "listo")
+    const lower = text.toLowerCase();
+    const isConfirmation = lower.includes('todo bien') || 
+                           lower.includes('está bien') || 
+                           lower.includes('esta bien') ||
+                           lower.includes('conforme') || 
+                           lower.includes('confirmar') || 
+                           lower.includes('guarda') || 
+                           lower.includes('guardar') ||
+                           lower.includes('listo') ||
+                           lower.includes('correcto') ||
+                           lower.includes('guárdalo');
+
+    if (isConfirmation) {
+      const farewell = "¡Excelente caserita! Todo ha quedado confirmado y registrado en tu inventario. ¡Muchos éxitos en las ventas de hoy!";
+      if (bubble) bubble.textContent = `"${farewell}"`;
+      this.speakAssistantFriendly(farewell);
+      setTimeout(() => {
+        this.confirmAndSavePendingBoleta();
+      }, 900);
+      return;
+    }
+
+    // 2. Intentar llamar a Gemini si hay API Key disponible
+    const apiKey = StorageService.getGeminiApiKey();
+    const model = StorageService.getGeminiModel() || 'gemini-2.0-flash';
+    let geminiSuccess = false;
+
+    if (apiKey && apiKey.length > 10) {
+      try {
+        const prompt = `Eres Tinkuy IA, un asistente contable y de inventario cálido, amigable y cercano para emprendedoras peruanas (hablas con respeto y cariño, estilo 'casera' o 'amiga emprendedora').
+Tienes esta lista de productos actualmente extraídos de la boleta:
+${JSON.stringify(this.pendingScanData.items)}
+
+El usuario acaba de decir o pedir esta corrección:
+"${text}"
+
+Instrucciones:
+1. Aplica la corrección a la lista de productos: actualiza el stock, precio de costo (costUnit), precio de venta (priceSale), nombre, o agrega/elimina según lo pedido.
+2. Genera una respuesta amigable, cálida y breve (máximo 2 oraciones), explicando qué cambiaste y preguntando amablemente si ahora sí está todo conforme para guardarlo en el inventario.
+3. Responde estrictamente un JSON válido con esta forma (sin markdown backticks):
+{
+  "replyMessage": "¡Listo casera! Ya le cambié el precio al polo a 20 soles y son 15 unidades. ¿Está todo conforme ahora o deseas ajustar algo más?",
+  "updatedItems": [
+    { "name": "...", "stock": 10, "costUnit": 18.0, "priceSale": 38.0, "category": "textil" }
+  ]
+}`;
+
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.2,
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        if (response.ok) {
+          const jsonResp = await response.json();
+          const rawText = jsonResp?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleaned);
+
+          if (parsed.updatedItems && Array.isArray(parsed.updatedItems)) {
+            this.pendingScanData.items = parsed.updatedItems.map((it, idx) => ({
+              id: it.id || ('item_' + Date.now() + '_' + idx),
+              name: it.name || 'Producto',
+              category: it.category || 'textil',
+              stock: Number(it.stock) || 1,
+              costUnit: Number(it.costUnit) || 15.0,
+              priceSale: Number(it.priceSale) || 30.0
+            }));
+
+            const reply = parsed.replyMessage || "¡Listo caserita! Ya ajusté los datos. ¿Está todo conforme para guardarlo?";
+            if (bubble) bubble.textContent = `"${reply}"`;
+            this.renderReviewModalItems();
+            this.speakAssistantFriendly(reply);
+            geminiSuccess = true;
+          }
+        }
+      } catch (err) {
+        console.warn('Gemini voice correction fallback to local:', err);
+      }
+    }
+
+    // 3. Fallback inteligente local si Gemini no está configurado o falló
+    if (!geminiSuccess) {
+      this.applyLocalVoiceCorrection(text);
+    }
+  }
+
+  applyLocalVoiceCorrection(text) {
+    const bubble = document.getElementById('reviewVoiceBubble');
+    const lower = text.toLowerCase();
+    let reply = "¡Entendido caserita! Ya hice el ajuste en tu lista. ¿Está todo conforme para guardarlo?";
+    let modified = false;
+
+    // Buscar números en el texto
+    const numbers = text.match(/\d+(?:\.\d+)?/g);
+    const num = numbers ? parseFloat(numbers[0]) : null;
+
+    // Detectar si pide eliminar/borrar
+    if (lower.includes('elimina') || lower.includes('borra') || lower.includes('quitar')) {
+      const idx = this.pendingScanData.items.findIndex(it => lower.includes(it.name.toLowerCase().slice(0, 5)));
+      if (idx !== -1) {
+        const removedName = this.pendingScanData.items[idx].name;
+        this.pendingScanData.items.splice(idx, 1);
+        reply = `¡Listo casera! Ya retiré ${removedName} de la lista. ¿Deseas hacer algún otro cambio o está todo conforme?`;
+        modified = true;
+      }
+    }
+
+    // Detectar si pide cambiar precio o costo o cantidad
+    if (!modified && num !== null && this.pendingScanData.items.length > 0) {
+      // Buscar qué producto coincide con el texto
+      let targetIdx = this.pendingScanData.items.findIndex(it => {
+        const words = it.name.toLowerCase().split(' ');
+        return words.some(w => w.length > 3 && lower.includes(w));
+      });
+      if (targetIdx === -1) targetIdx = 0; // Default al primero
+
+      const target = this.pendingScanData.items[targetIdx];
+      if (target) {
+        if (lower.includes('costo') || lower.includes('compre') || lower.includes('compré')) {
+          target.costUnit = num;
+          reply = `¡Anotado caserita! Ya cambié el costo unitario de ${target.name} a S/ ${num.toFixed(2)}. ¿Ahora sí está todo conforme?`;
+        } else if (lower.includes('cantidad') || lower.includes('unidad') || lower.includes('unidades') || lower.includes('son ') || lower.includes('stock')) {
+          target.stock = Math.round(num);
+          reply = `¡Listo caserita! Ya ajusté la cantidad de ${target.name} a ${target.stock} unidades. ¿Coincide con tu comprobante?`;
+        } else {
+          // Por defecto precio de venta
+          target.priceSale = num;
+          reply = `¡Perfecto casera! Ya puse el precio de venta de ${target.name} en S/ ${num.toFixed(2)}. ¿Está todo conforme para confirmarlo?`;
+        }
+        modified = true;
+      }
+    }
+
+    if (!modified) {
+      reply = `¡Te escuché caserita! He registrado tu observación sobre "${text}". ¿Deseas confirmarlo y guardar en el inventario?`;
+    }
+
+    if (bubble) bubble.textContent = `"${reply}"`;
+    this.renderReviewModalItems();
+    this.speakAssistantFriendly(reply);
+  }
+
+  speakAssistantFriendly(text) {
+    if (!('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-PE';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.05;
+
+      const voices = window.speechSynthesis.getVoices();
+      const esVoice = voices.find(v => v.lang.startsWith('es-PE') || v.lang.startsWith('es-419') || v.lang.startsWith('es-US') || v.lang.startsWith('es-ES'));
+      if (esVoice) utterance.voice = esVoice;
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis error:', e);
+    }
+  }
+
+  confirmAndSavePendingBoleta() {
+    if (!this.pendingScanData || !this.pendingScanData.items) return;
+    const data = this.pendingScanData;
+
+    const totalSum = data.items.reduce((acc, it) => acc + ((Number(it.stock) || 1) * (Number(it.costUnit) || 15)), 0);
+
+    const receiptRecord = {
+      id: 'rec_' + Date.now(),
+      documentNumber: data.documentNumber,
+      title: data.title,
+      provider: data.providerOrIssuer,
+      date: data.date,
+      type: data.documentType,
+      storeId: this.currentStoreId === 'consolidated' ? 'guisado' : this.currentStoreId,
+      totalAmount: totalSum,
+      itemsCount: data.items.length,
+      source: data.source,
+      items: data.items.map(it => ({
+        name: it.name,
+        qty: Number(it.stock) || 1,
+        costUnit: Number(it.costUnit) || 18.0,
+        priceSale: Number(it.priceSale) || 38.0,
+        total: (Number(it.stock) || 1) * (Number(it.costUnit) || 18.0)
+      })),
+      imageDataUrl: (data.imageDataUrl && data.imageDataUrl.length < 120000) ? data.imageDataUrl : null
+    };
+
+    if (!this.state.scannedReceipts) {
+      this.state.scannedReceipts = [];
+    }
+    this.state.scannedReceipts.unshift(receiptRecord);
+
+    let itemsAdded = 0;
+    let itemsUpdated = 0;
+
+    data.items.forEach(newItem => {
+      newItem.storeId = this.currentStoreId === 'consolidated' ? 'guisado' : this.currentStoreId;
+      const existing = this.state.products.find(p => p.name.toLowerCase().trim() === newItem.name.toLowerCase().trim() && (p.storeId === newItem.storeId || this.currentStoreId === 'consolidated'));
+      
+      if (existing) {
+        existing.stock += (Number(newItem.stock) || 1);
+        if (newItem.costUnit) existing.costUnit = Number(newItem.costUnit);
+        if (newItem.priceSale) existing.priceSale = Number(newItem.priceSale);
+        existing.lastSource = `Boleta ${data.documentNumber}`;
+        existing.isRecentlyUpdated = true;
+        itemsUpdated++;
+      } else {
+        newItem.lastSource = `Boleta ${data.documentNumber}`;
+        newItem.isRecentlyUpdated = true;
+        this.state.products.unshift(newItem);
+        itemsAdded++;
+      }
+    });
+
+    // Guardar en LocalStorage y re-renderizar vistas
+    this.save();
+
+    // Cerrar la ventana de revisión
+    this.closeBoletaReviewModal();
+
+    // Mostrar alerta de éxito
+    const alertEl = document.getElementById('scanSuccessAlert');
+    const alertMsg = document.getElementById('scanSuccessAlertMsg');
+    if (alertEl && alertMsg) {
+      alertMsg.textContent = `${receiptRecord.title} confirmada y guardada en LocalStorage. Total: S/ ${receiptRecord.totalAmount.toFixed(2)} (${itemsAdded} agregados, ${itemsUpdated} actualizados).`;
+      alertEl.classList.remove('hidden');
+    }
+
+    this.showToast(`¡${receiptRecord.title} guardada en LocalStorage!`);
+
+    // Scroll a la sección de Boletas Guardadas
+    const receiptsSection = document.getElementById('scannedReceiptsSection');
+    if (receiptsSection) {
+      receiptsSection.scrollIntoView({ behavior: 'smooth' });
     }
   }
 
