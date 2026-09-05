@@ -30,6 +30,7 @@ class TinkuyAppController {
   init() {
     this.bindEvents();
     this.renderHeader();
+    this.renderScannedReceipts();
     this.renderInventoryTable();
     this.renderInventoryMobileCards();
     this.updateTrafficLightView();
@@ -90,6 +91,7 @@ class TinkuyAppController {
   save() {
     StorageService.saveData(this.state);
     this.renderHeader();
+    this.renderScannedReceipts();
     this.renderInventoryTable();
     this.renderInventoryMobileCards();
     this.updateTrafficLightView();
@@ -342,18 +344,81 @@ class TinkuyAppController {
         doubtContainer.classList.remove('hidden');
       }
 
-      // Guardar productos nuevos en localStorage
+      // Metadata del comprobante escaneado
+      const isBoleta = (result.documentType === 'boleta') || label.toLowerCase().includes('bolet') || label === 'boleta_proveedor';
+      const docNum = result.documentNumber || (isBoleta ? `B001-${Math.floor(1000 + Math.random() * 9000)}` : `Cuaderno #${Math.floor(100 + Math.random() * 900)}`);
+      const provider = result.providerOrIssuer || (isBoleta ? 'Textilera San Jacinto S.A.C.' : 'Galería Guisado #104');
+      const docTitle = isBoleta ? `Boleta de Compra N° ${docNum}` : `Cuaderno de Cierre Diario ${docNum}`;
+      
+      const totalSum = result.items.reduce((acc, it) => acc + ((Number(it.stock) || 1) * (Number(it.costUnit) || Number(it.priceSale) || 15)), 0);
+
+      const receiptRecord = {
+        id: 'rec_' + Date.now(),
+        documentNumber: docNum,
+        title: docTitle,
+        provider: provider,
+        date: new Date().toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }),
+        type: isBoleta ? 'boleta' : 'cuaderno',
+        storeId: this.currentStoreId === 'consolidated' ? 'guisado' : this.currentStoreId,
+        totalAmount: result.totalAmount || totalSum,
+        itemsCount: result.items.length,
+        source: result.source && result.source.startsWith('gemini') ? result.source : 'Motor Local Offline',
+        items: result.items.map(it => ({
+          name: it.name,
+          qty: Number(it.stock) || 1,
+          costUnit: Number(it.costUnit) || 18.0,
+          priceSale: Number(it.priceSale) || 38.0,
+          total: (Number(it.stock) || 1) * (Number(it.costUnit) || 18.0)
+        })),
+        imageDataUrl: (imageDataUrl && imageDataUrl.length < 120000) ? imageDataUrl : null
+      };
+
+      if (!this.state.scannedReceipts) {
+        this.state.scannedReceipts = [];
+      }
+      this.state.scannedReceipts.unshift(receiptRecord);
+
+      // Guardar productos o sumar stock en localStorage
+      let itemsAdded = 0;
+      let itemsUpdated = 0;
+
       result.items.forEach(newItem => {
-        const exists = this.state.products.some(p => p.name.toLowerCase() === newItem.name.toLowerCase() && p.storeId === newItem.storeId);
-        if (!exists) {
+        newItem.storeId = this.currentStoreId === 'consolidated' ? 'guisado' : this.currentStoreId;
+        const existing = this.state.products.find(p => p.name.toLowerCase().trim() === newItem.name.toLowerCase().trim() && (p.storeId === newItem.storeId || this.currentStoreId === 'consolidated'));
+        
+        if (existing) {
+          existing.stock += (Number(newItem.stock) || 1);
+          if (newItem.costUnit) existing.costUnit = newItem.costUnit;
+          if (newItem.priceSale) existing.priceSale = newItem.priceSale;
+          existing.lastSource = `Boleta ${docNum}`;
+          existing.isRecentlyUpdated = true;
+          itemsUpdated++;
+        } else {
+          newItem.lastSource = `Boleta ${docNum}`;
+          newItem.isRecentlyUpdated = true;
           this.state.products.unshift(newItem);
+          itemsAdded++;
         }
       });
-      this.save();
-      this.showToast('¡Foto procesada y guardada en LocalStorage!');
 
-      const dataCard = document.getElementById('extractedDataCard');
-      if (dataCard) dataCard.scrollIntoView({ behavior: 'smooth' });
+      // Guardar TODO en LocalStorage y re-renderizar todas las vistas
+      this.save();
+
+      // Mostrar alerta de éxito
+      const alertEl = document.getElementById('scanSuccessAlert');
+      const alertMsg = document.getElementById('scanSuccessAlertMsg');
+      if (alertEl && alertMsg) {
+        alertMsg.textContent = `${receiptRecord.title} guardada en LocalStorage. Total: S/ ${receiptRecord.totalAmount.toFixed(2)} (${itemsAdded} agregados, ${itemsUpdated} actualizados).`;
+        alertEl.classList.remove('hidden');
+      }
+
+      this.showToast(`¡${receiptRecord.title} guardada en LocalStorage!`);
+
+      // Scroll suave a la sección visible de Boletas Guardadas
+      const receiptsSection = document.getElementById('scannedReceiptsSection');
+      if (receiptsSection) {
+        receiptsSection.scrollIntoView({ behavior: 'smooth' });
+      }
     } catch (e) {
       console.error('Error procesando imagen:', e);
       this.showToast('Error procesando foto, intente nuevamente');
@@ -486,6 +551,125 @@ class TinkuyAppController {
     });
   }
 
+  // =========================================================================
+  // HISTORIAL DE BOLETAS Y CUADERNOS EN LOCALSTORAGE
+  // =========================================================================
+  renderScannedReceipts() {
+    const list = document.getElementById('scannedReceiptsList');
+    const countBadge = document.getElementById('scannedReceiptsCountBadge');
+    const totalBadge = document.getElementById('scannedReceiptsTotalBadge');
+    if (!list) return;
+
+    const receipts = this.state.scannedReceipts || [];
+    const filteredReceipts = receipts.filter(r => {
+      if (this.currentStoreId === 'consolidated') return true;
+      return r.storeId === this.currentStoreId;
+    });
+
+    const totalMoney = filteredReceipts.reduce((acc, r) => acc + (Number(r.totalAmount) || 0), 0);
+    if (countBadge) countBadge.textContent = `${filteredReceipts.length} ${filteredReceipts.length === 1 ? 'comprobante' : 'comprobantes'}`;
+    if (totalBadge) totalBadge.textContent = `S/ ${totalMoney.toFixed(2)} procesados`;
+
+    if (filteredReceipts.length === 0) {
+      list.innerHTML = `
+        <div class="p-6 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 space-y-2">
+          <i data-lucide="inbox" class="w-8 h-8 text-slate-300 mx-auto"></i>
+          <p class="text-xs font-semibold text-slate-600">No hay boletas ni cuadernos guardados en este local.</p>
+          <p class="text-[11px] text-slate-400">Escanea una boleta de proveedor o presiona los botones de prueba arriba para guardar una en LocalStorage.</p>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+      return;
+    }
+
+    list.innerHTML = filteredReceipts.map(r => {
+      const isBoleta = r.type === 'boleta';
+      const borderTheme = isBoleta ? 'border-l-4 border-l-blue-500 bg-blue-50/20' : 'border-l-4 border-l-amber-500 bg-amber-50/20';
+      const typeBadge = isBoleta
+        ? `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase tracking-wide">🧾 Boleta de Compra</span>`
+        : `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase tracking-wide">📓 Cuaderno Diario</span>`;
+
+      const storeName = r.storeId === 'guisado' ? 'Galería Guisado' : r.storeId === 'el_rey' ? 'C.C. El Rey' : 'Almacén Central';
+
+      const itemsRows = (r.items || []).map(it => `
+        <div class="flex items-center justify-between py-1 border-b border-slate-100/80 text-[11px]">
+          <span class="font-medium text-slate-700">
+            <strong class="text-slate-900">${it.qty}x</strong> ${it.name}
+          </span>
+          <span class="font-semibold text-slate-800">S/ ${(it.total || (it.qty * (it.costUnit || 10))).toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      return `
+        <div id="receipt-card-${r.id}" class="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition space-y-2.5 ${borderTheme}">
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                ${typeBadge}
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 flex items-center gap-1">
+                  <i data-lucide="check" class="w-3 h-3"></i> En LocalStorage
+                </span>
+              </div>
+              <h5 class="font-bold text-xs sm:text-sm text-slate-800">${r.title}</h5>
+              <p class="text-[11px] text-slate-500">${r.provider} · <span class="font-medium text-tinkuy-forest">${storeName}</span></p>
+            </div>
+
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 block">${r.date}</span>
+              <span class="text-xs font-bold text-slate-500">Monto Comprobante:</span>
+              <span class="text-sm sm:text-base font-bold text-tinkuy-forest block">S/ ${Number(r.totalAmount).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <!-- Items desglosados -->
+          <div class="bg-slate-50/70 rounded-xl p-2.5 border border-slate-100 space-y-0.5">
+            <div class="text-[10px] uppercase font-bold text-slate-400 mb-1 flex items-center justify-between">
+              <span>Productos ingresados (${r.itemsCount || r.items.length} items)</span>
+              <span>Subtotal</span>
+            </div>
+            ${itemsRows}
+          </div>
+
+          <!-- Footer con motor y acciones -->
+          <div class="flex items-center justify-between pt-1 text-xs">
+            <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <span>Motor:</span>
+              <strong class="text-slate-700 font-semibold bg-white px-2 py-0.5 rounded-md border border-slate-200">${r.source}</strong>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="window.tinkuyApp.highlightInventoryFromReceipt('${r.id}')" class="px-2.5 py-1 rounded-xl bg-tinkuy-sand hover:bg-tinkuy-sandDark text-slate-700 text-[11px] font-bold flex items-center gap-1 transition">
+                <i data-lucide="eye" class="w-3 h-3"></i>
+                Ver en Inventario
+              </button>
+              <button onclick="window.tinkuyApp.deleteScannedReceipt('${r.id}')" class="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition" title="Eliminar comprobante de LocalStorage">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  deleteScannedReceipt(receiptId) {
+    if (!confirm('¿Deseas eliminar esta boleta de tu historial en LocalStorage?')) return;
+    this.state.scannedReceipts = (this.state.scannedReceipts || []).filter(r => r.id !== receiptId);
+    this.save();
+    this.showToast('Comprobante eliminado de LocalStorage');
+  }
+
+  highlightInventoryFromReceipt(receiptId) {
+    const table = document.getElementById('extractedDataCard');
+    if (table) {
+      table.scrollIntoView({ behavior: 'smooth' });
+      table.classList.add('ring-2', 'ring-tinkuy-coral');
+      setTimeout(() => table.classList.remove('ring-2', 'ring-tinkuy-coral'), 2500);
+    }
+  }
+
   // --- RENDER TABLE & MOBILE CARDS ---
   renderInventoryTable() {
     const tbody = document.getElementById('inventoryTableBody');
@@ -511,10 +695,18 @@ class TinkuyAppController {
 
       const storeName = p.storeId === 'guisado' ? 'Guisado #104' : p.storeId === 'el_rey' ? 'El Rey #215' : 'Almacén';
 
+      let sourceTag = '';
+      if (p.lastSource) {
+        sourceTag = `<span class="px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 text-[9px] font-bold border border-blue-200">🧾 ${p.lastSource}</span>`;
+      }
+
       tr.innerHTML = `
         <td class="px-3 py-2.5 font-bold text-slate-800">
           ${p.name}
-          <span class="block text-[10px] font-normal text-slate-400 capitalize">${p.category}</span>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <span class="text-[10px] font-normal text-slate-400 capitalize">${p.category}</span>
+            ${sourceTag}
+          </div>
         </td>
         <td class="px-3 py-2.5 text-slate-600">${p.variants || 'Estándar'}</td>
         <td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">${storeName}</span></td>
@@ -556,11 +748,19 @@ class TinkuyAppController {
 
       const storeName = p.storeId === 'guisado' ? 'Guisado' : p.storeId === 'el_rey' ? 'El Rey' : 'Almacén';
 
+      let sourcePill = '';
+      if (p.lastSource) {
+        sourcePill = `<span class="px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 text-[9px] font-bold border border-blue-200">🧾 ${p.lastSource}</span>`;
+      }
+
       card.innerHTML = `
         <div class="flex items-start justify-between gap-1.5">
           <div class="min-w-0 flex-1">
             <h5 class="font-bold text-xs text-slate-800 truncate">${p.name}</h5>
-            <p class="text-[10px] text-slate-500 mt-0.5">${p.variants || 'Estándar'} · <span class="font-semibold text-tinkuy-forest">${storeName}</span></p>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <p class="text-[10px] text-slate-500">${p.variants || 'Estándar'} · <span class="font-semibold text-tinkuy-forest">${storeName}</span></p>
+              ${sourcePill}
+            </div>
           </div>
           ${statusPill}
         </div>
