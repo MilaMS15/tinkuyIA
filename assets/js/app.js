@@ -389,15 +389,15 @@ class TinkuyAppController {
       }
 
       // Metadata del comprobante escaneado
-      const isBoleta = (result.documentType === 'boleta') || label.toLowerCase().includes('bolet') || label === 'boleta_proveedor';
-      const docNum = result.documentNumber || (isBoleta ? `B001-${Math.floor(1000 + Math.random() * 9000)}` : `Cuaderno #${Math.floor(100 + Math.random() * 900)}`);
-      const provider = result.providerOrIssuer || (isBoleta ? 'Textilera San Jacinto S.A.C.' : 'Galería Guisado #104');
-      const docTitle = isBoleta ? `Boleta de Compra N° ${docNum}` : `Cuaderno de Cierre Diario ${docNum}`;
+      const isBoleta = (result.documentType === 'boleta') || label.toLowerCase().includes('bolet') || label === 'boleta_proveedor' || (result.items && result.items.length >= 4);
+      const docNum = result.documentNumber || (isBoleta ? `001-${Math.floor(100000 + Math.random() * 900000)}` : `Cuaderno #${Math.floor(100 + Math.random() * 900)}`);
+      const provider = result.providerOrIssuer || (isBoleta ? 'Boutique Estilo & Moda (Av. Larco 450)' : 'Galería Guisado #104');
+      const docTitle = (isBoleta ? (docNum.startsWith('001') ? `Boleta de Venta Electrónica Nro. ${docNum}` : `Boleta de Compra N° ${docNum}`) : `Cuaderno de Cierre Diario ${docNum}`);
       
       this.pendingScanData = {
         imageDataUrl: (imageDataUrl && imageDataUrl.length < 500000) ? imageDataUrl : null,
         label,
-        source: result.source && result.source.startsWith('gemini') ? result.source : 'Motor Local Offline',
+        source: result.source && result.source.startsWith('gemini') ? result.source : (result.source || 'Motor Local Offline'),
         documentType: isBoleta ? 'boleta' : 'cuaderno',
         documentNumber: docNum,
         providerOrIssuer: provider,
@@ -440,9 +440,11 @@ class TinkuyAppController {
 
     if (img) img.src = this.pendingScanData.imageDataUrl || '';
     if (badge) {
-      badge.textContent = (this.pendingScanData.source && this.pendingScanData.source.startsWith('gemini'))
-        ? `${this.pendingScanData.source} ✓`
-        : 'Motor Local Offline';
+      const badgeText = document.getElementById('reviewModalAiBadgeText');
+      const isGemini = this.pendingScanData.source && this.pendingScanData.source.startsWith('gemini');
+      const textToSet = isGemini ? `${this.pendingScanData.source} ✓` : 'Motor Local Offline';
+      if (badgeText) badgeText.textContent = textToSet;
+      else badge.textContent = textToSet;
     }
     if (typePill) {
       typePill.textContent = this.pendingScanData.documentType === 'boleta'
